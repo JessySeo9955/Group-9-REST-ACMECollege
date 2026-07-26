@@ -163,7 +163,52 @@ public class ACMECollegeService implements Serializable {
     }
 
 	//TODO ACMECS02 - Add the rest of your CRUD methods here.
+	// ---------------- START Professors 
+	public List<Professor> getAllProfessors() {
+	    return em.createNamedQuery(
+	            Professor.ALL_PROFESSORS_QUERY,
+	            Professor.class)
+	            .getResultList();
+	}
+
+	public Professor getProfessorById(int id) {
+	    return em.find(Professor.class, id);
+	}
+
+	@Transactional
+	public Professor persistProfessor(Professor professor) {
+	    em.persist(professor);
+	    return professor;
+	}
+
+	@Transactional
+	public Professor updateProfessorById(int id, Professor professorWithUpdates) {
+
+	    Professor professor = getProfessorById(id);
+
+	    if (professor != null) {
+	        em.refresh(professor);
+	        em.merge(professorWithUpdates);
+	        em.flush();
+	    }
+
+	    return professorWithUpdates;
+	}
+
+	@Transactional
+	public Professor deleteProfessorById(int id) {
+
+	    Professor professor = getProfessorById(id);
+
+	    if (professor != null) {
+	        em.refresh(professor);
+	        em.remove(professor);
+	    }
+
+	    return professor;
+	}
 	
+	// ---------------- END Professors 
 	
 	
 }

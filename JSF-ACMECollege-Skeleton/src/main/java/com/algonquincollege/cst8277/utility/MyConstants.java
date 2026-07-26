@@ -55,6 +55,7 @@ public interface MyConstants {
     public static final String PROGRAM_RESOURCE_PATH = SLASH + "program";
     
     //TODO Add your own resource constants here
+    public static final String PROFESSOR_RESOURCE_NAME = "professor";
 
     
     

@@ -24,7 +24,7 @@ public List<Project> getProjects({@literal @}PathParam("<b><u>emailId</u></b>") 
  * @author mwnorman
  */
 public interface MyConstants {
-    
+	
     // constants on interfaces are 'public static final' by default, but I leave it this way in case I move them to a class
     public static final String ADMIN_ROLE = "ADMIN_ROLE";
     public static final String USER_ROLE = "USER_ROLE";
@@ -43,7 +43,7 @@ public interface MyConstants {
     public static final String PROGRAM_RESOURCE_PATH = SLASH + "program";
     
     //TODO MC01 - Add your own constants here.
-
+    public static final String PROFESSOR_RESOURCE_NAME = "professor";
     
     
     public static final String ACCESS_REQUIRES_AUTHENTICATION =
@@ -75,5 +75,6 @@ public interface MyConstants {
     // JPA constants
     public static final String PU_NAME = "acmecollege-PU";
     public static final String PARAM1 = "param1";
+ 
 
 }
