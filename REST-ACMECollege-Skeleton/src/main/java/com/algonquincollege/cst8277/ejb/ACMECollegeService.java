@@ -64,6 +64,7 @@ public class ACMECollegeService implements Serializable {
     private static final String READ_ALL_PROGRAMS = "SELECT name FROM program";
     private static final String READ_ALL_SEMESTERS = "SELECT name FROM semester";
     private static final String READ_ALL_LETTER_GRADES = "SELECT grade FROM letter_grade";
+    private static final String READ_ALL_DEGREES = "SELECT name FROM degree";
 
     @PersistenceContext(name = PU_NAME)
     protected EntityManager em;
@@ -151,6 +152,18 @@ public class ACMECollegeService implements Serializable {
             LOG.debug("could not load programs", e);
         }
         return programs;
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<String> getAllDegrees() {
+        List<String> degrees = new ArrayList<>();
+        try {
+            degrees = em.createNativeQuery(READ_ALL_DEGREES).getResultList();
+        }
+        catch (Exception e) {
+            LOG.debug("could not load degrees", e);
+        }
+        return degrees;
     }
 
     public List<Professor> getAllProfessors() {

@@ -4,7 +4,7 @@ import static com.algonquincollege.cst8277.utility.MyConstants.ADMIN_ROLE;
 import static com.algonquincollege.cst8277.utility.MyConstants.PROFESSOR_RESOURCE_NAME;
 import static com.algonquincollege.cst8277.utility.MyConstants.RESOURCE_PATH_ID_ELEMENT;
 import static com.algonquincollege.cst8277.utility.MyConstants.RESOURCE_PATH_ID_PATH;
-import static com.algonquincollege.cst8277.utility.MyConstants.PROGRAM_RESOURCE_PATH;
+import static com.algonquincollege.cst8277.utility.MyConstants.DEGREE_RESOURCE_PATH;
 import static com.algonquincollege.cst8277.utility.MyConstants.USER_ROLE;
 
 import java.util.List;
@@ -60,6 +60,20 @@ public class ProfessorResource {
         List<Professor> professors = service.getAllProfessors();
 
         return Response.ok(professors).build();
+    }
+
+    /**
+     * Get the list of degrees used to populate the JSF professor form.
+     * Declared before the /{id} handler for readability; JAX-RS matches the
+     * literal /degree path ahead of the {id} template regardless of order.
+     */
+    @GET
+    @RolesAllowed({ADMIN_ROLE, USER_ROLE})
+    @Path(DEGREE_RESOURCE_PATH)
+    public Response getDegrees() {
+        LOG.debug("retrieving all degrees ...");
+
+        return Response.ok(service.getAllDegrees()).build();
     }
 
     /**
