@@ -23,6 +23,8 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 
+import static com.algonquincollege.cst8277.utility.MyConstants.PARAM1;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @SuppressWarnings("unused")
@@ -30,30 +32,59 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 /**
  * The persistent class for the course database table.
  */
-//TODO C01 - Add the missing annotations.
-//TODO C02 - Do we need a mapped super class?  If so, which one?
-public class Course implements Serializable {
+// C01 - @Entity marks the class as managed by JPA; @Table binds it to the `course` table.
+@Entity(name = "Course")
+@Table(name = "course")
+// C01 - all JPA annotations in this hierarchy are on fields (PojoBase places @Id on a field).
+@Access(AccessType.FIELD)
+// C01/C02 - PojoBase maps the PK as column "id", but the course table calls it "course_id".
+//           @AttributeOverride re-points the inherited mapping without editing PojoBase.
+@AttributeOverride(name = "id", column = @Column(name = "course_id"))
+// C01 - DISTINCT is required: LEFT JOIN FETCH across a collection multiplies the root rows.
+@NamedQuery(name = Course.ALL_COURSES_QUERY,
+	query = "SELECT DISTINCT c FROM Course c LEFT JOIN FETCH c.courseRegistrations")
+@NamedQuery(name = Course.COURSE_BY_ID_QUERY,
+	query = "SELECT DISTINCT c FROM Course c LEFT JOIN FETCH c.courseRegistrations WHERE c.id = :" + PARAM1)
+@NamedQuery(name = Course.COURSE_BY_CODE_QUERY,
+	query = "SELECT DISTINCT c FROM Course c WHERE c.courseCode = :" + PARAM1)
+// C02 - yes: PojoBase, the @MappedSuperclass holding id / version / created / updated.
+public class Course extends PojoBase implements Serializable {
 	private static final long serialVersionUID = 1L;
-	
-	public static final String ALL_COURSES_QUERY = "Course.findAll";
 
-	// TODO C03 - Add missing annotations.
+	public static final String ALL_COURSES_QUERY = "Course.findAll";
+	public static final String COURSE_BY_ID_QUERY = "Course.findById";
+	public static final String COURSE_BY_CODE_QUERY = "Course.findByCourseCode";
+
+	// C03 - `course_code` VARCHAR(7) NOT NULL
+	@Basic(optional = false)
+	@Column(name = "course_code", nullable = false, length = 7)
 	protected String courseCode;
 
-	// TODO C04 - Add missing annotations.
+	// C04 - `course_title` VARCHAR(100) NOT NULL
+	@Basic(optional = false)
+	@Column(name = "course_title", nullable = false, length = 100)
 	protected String courseTitle;
 
-	// TODO C05 - Add missing annotations.
+	// C05 - `credit_units` INT NOT NULL
+	@Basic(optional = false)
+	@Column(name = "credit_units", nullable = false)
 	protected Integer creditUnits;
 
-	// TODO C06 - Add missing annotations.
+	// C06 - `online` BIT(1) NOT NULL - mapped as Short (0 = classroom, 1 = online)
+	@Basic(optional = false)
+	@Column(name = "online", nullable = false)
 	protected Short online;
-	
-	// TODO C07 - Add annotations for 1:M relation.  What should be the cascade and fetch types?
-	// TODO C08 - Add other missing annotations.
+
+	// C07 - 1:M inverse side. CourseRegistration.course owns the FK, hence mappedBy.
+	//       LAZY so a course list does not drag in every registration.
+	//       MERGE only - cascading REMOVE would delete registrations owned by another slice.
+	@OneToMany(mappedBy = "course", cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
+	// C08 - keep registrations out of the JSON payload (avoids the Course <-> CourseRegistration cycle).
+	@JsonIgnore
 	protected Set<CourseRegistration> courseRegistrations = new HashSet<>();
-	
-	// TODO C09 - Add missing annotations.
+
+	// C09 - UI-only flag, no such column on the DB.
+	@Transient
 	protected boolean editable = false;
 
 	public Course() {
@@ -92,6 +123,8 @@ public class Course implements Serializable {
 		this.online = online;
 	}
 
+	// C08 - also on the getter: Jackson resolves properties, not fields.
+	@JsonIgnore
 	public Set<CourseRegistration> getCourseRegistrations() {
 		return courseRegistrations;
 	}

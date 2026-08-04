@@ -34,6 +34,7 @@ import java.util.Set;
 import jakarta.ejb.Singleton;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
@@ -67,7 +68,9 @@ public class ACMECollegeService implements Serializable {
     private static final Logger LOG = LogManager.getLogger();
     
     private static final String READ_ALL_PROGRAMS = "SELECT name FROM program";
-    //TODO ACMECS01 - Add your query constants here.
+    //ACMECS01 - Named-query name constants live on the entity they belong to
+    //           (Course.ALL_COURSES_QUERY, Course.COURSE_BY_ID_QUERY, ...).
+    //           Only raw native-SQL strings that no entity owns are declared here.
     
     @PersistenceContext(name = PU_NAME)
     protected EntityManager em;
@@ -106,7 +109,9 @@ public class ACMECollegeService implements Serializable {
         String pwHash = pbAndjPasswordHash.generate(DEFAULT_USER_PASSWORD.toCharArray());
         userForNewStudent.setPwHash(pwHash);
         userForNewStudent.setStudent(newStudent);
-        SecurityRole userRole = /* TODO ACMEMS01 - Use NamedQuery on SecurityRole to find USER_ROLE */ null;
+        SecurityRole userRole = em.createNamedQuery(SecurityRole.SECURITY_ROLE_BY_NAME, SecurityRole.class)
+        		.setParameter(PARAM1, USER_ROLE)
+        		.getSingleResult();
         userForNewStudent.getRoles().add(userRole);
         userRole.getUsers().add(userForNewStudent);
         em.persist(userForNewStudent);
@@ -140,11 +145,12 @@ public class ACMECollegeService implements Serializable {
         Student student = getStudentById(id);
         if (student != null) {
             em.refresh(student);
-            /* TODO ACMEMS02 - Use NamedQuery on SecurityRole to find this related Physician
-               so that when we remove it, the relationship from SECURITY_USER table
-               is not dangling*/
-            TypedQuery<SecurityUser> findUser = em.<SecurityUser>createNamedQuery("SecurityUser.userByStudentId", SecurityUser.class).setParameter(PARAM1, id);
-            SecurityUser sUser = findUser.getSingleResult();
+            /* ACMEMS02 - Use the NamedQuery on SecurityUser to find the SecurityUser
+               related to this Student, so that when we remove it, the relationship
+               from the SECURITY_USER table is not left dangling. */
+            SecurityUser sUser = em.createNamedQuery(SecurityUser.SECURITY_USER_BY_STUDENT_ID,SecurityUser.class)
+            		.setParameter(PARAM1, id)
+            		.getSingleResult();
             em.remove(sUser);
             em.remove(student);
         }
@@ -162,8 +168,120 @@ public class ACMECollegeService implements Serializable {
 		return programs;
     }
 
-	//TODO ACMECS02 - Add the rest of your CRUD methods here.
-	
-	
-	
+	//ACMECS02 - Add the rest of your CRUD methods here.
+
+	// ------------------------------------------------------------------
+	// --- Simon - Course ---
+	// ------------------------------------------------------------------
+
+	/**
+	 * Read all courses. Uses the named query so the (LAZY) courseRegistrations
+	 * collection is initialised before the entity leaves the transaction.
+	 *
+	 * @return every Course in the database
+	 */
+	public List<Course> getAllCourses() {
+		return em.createNamedQuery(Course.ALL_COURSES_QUERY, Course.class).getResultList();
+	}
+
+	/**
+	 * Read a single course by primary key.
+	 *
+	 * @param id - course_id to look for
+	 * @return the Course, or null when no such row exists
+	 */
+	public Course getCourseById(int id) {
+		return em.find(Course.class, id);
+	}
+
+	/**
+	 * Read a single course by its course code (e.g. "CST8277").
+	 *
+	 * @param courseCode - the course code to look for
+	 * @return the Course, or null when no such row exists
+	 */
+	public Course getCourseByCourseCode(String courseCode) {
+		try {
+			return em.createNamedQuery(Course.COURSE_BY_CODE_QUERY, Course.class)
+					.setParameter(PARAM1, courseCode)
+					.getSingleResult();
+		}
+		catch (NoResultException e) {
+			LOG.debug("no Course found with courseCode = {}", courseCode);
+			return null;
+		}
+	}
+
+	/**
+	 * Create a new course.
+	 *
+	 * @param newCourse - the transient Course to insert
+	 * @return the managed Course, now carrying its generated id and timestamps
+	 */
+	@Transactional
+	public Course persistCourse(Course newCourse) {
+		em.persist(newCourse);
+		return newCourse;
+	}
+
+	/**
+	 * Update an existing course.
+	 * <p>
+	 * State is copied onto the managed instance rather than merging the detached
+	 * object straight from the request body: the incoming JSON has no @Version
+	 * value, so merging it directly risks a spurious OptimisticLockException.
+	 *
+	 * @param id - course_id of the row to update
+	 * @param courseWithUpdates - entity carrying the new values
+	 * @return the updated Course, or null when no such row exists
+	 */
+	@Transactional
+	public Course updateCourseById(int id, Course courseWithUpdates) {
+		Course courseToBeUpdated = getCourseById(id);
+		if (courseToBeUpdated == null) {
+			return null;
+		}
+		em.refresh(courseToBeUpdated);
+		courseToBeUpdated.setCourseCode(courseWithUpdates.getCourseCode());
+		courseToBeUpdated.setCourseTitle(courseWithUpdates.getCourseTitle());
+		courseToBeUpdated.setCreditUnits(courseWithUpdates.getCreditUnits());
+		courseToBeUpdated.setOnline(courseWithUpdates.getOnline());
+		em.merge(courseToBeUpdated);
+		em.flush();
+		return courseToBeUpdated;
+	}
+
+	/**
+	 * Delete a course by id.
+	 * <p>
+	 * course_registration holds a FK to course with ON DELETE NO ACTION, so the
+	 * dependent registrations are removed first to avoid a constraint violation.
+	 *
+	 * @param id - course_id of the row to delete
+	 * @return the deleted Course, or null when no such row exists
+	 */
+	@Transactional
+	public Course deleteCourseById(int id) {
+		Course course = getCourseById(id);
+		if (course == null) {
+			return null;
+		}
+		em.refresh(course);
+		for (CourseRegistration cr : new ArrayList<>(course.getCourseRegistrations())) {
+			em.remove(cr);
+		}
+		course.getCourseRegistrations().clear();
+		em.remove(course);
+		em.flush();
+		return course;
+	}
+
+	// ------------------------------------------------------------------
+	// --- Jessy - Professor / StudentClub ---
+	// ------------------------------------------------------------------
+
+	// ------------------------------------------------------------------
+	// --- Hadi - CourseRegistration ---
+	// ------------------------------------------------------------------
+
 }

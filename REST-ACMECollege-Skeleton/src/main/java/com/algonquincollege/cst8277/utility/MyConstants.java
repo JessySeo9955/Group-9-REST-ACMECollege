@@ -42,10 +42,12 @@ public interface MyConstants {
     public static final String STUDENT_RESOURCE_NAME =  "student";
     public static final String PROGRAM_RESOURCE_PATH = SLASH + "program";
     
-    //TODO MC01 - Add your own constants here.
+    //MC01 - Add your own constants here.
 
-    
-    
+    // Simon - Course
+    public static final String COURSE_RESOURCE_NAME = "course";
+
+
     public static final String ACCESS_REQUIRES_AUTHENTICATION =
             "Access requires authentication";
     public static final String ACCESS_TO_THE_SPECIFIED_RESOURCE_HAS_BEEN_FORBIDDEN =
