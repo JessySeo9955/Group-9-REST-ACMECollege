@@ -1,10 +1,12 @@
 /********************************************************************************************************
- * File: CustomIdentityStoreJPAHelper.java Course Materials CST 8277
+ * File:  CustomIdentityStoreJPAHelper.java Course Materials CST 8277
+ * 
+ * @author Teddy Yap
+ * @author Mike Norman
+ * 
  */
 package com.algonquincollege.cst8277.security;
 
-import static com.algonquincollege.cst8277.utility.MyConstants.PARAM1;
-import static com.algonquincollege.cst8277.utility.MyConstants.PU_NAME;
 import static java.util.Collections.emptySet;
 
 import java.util.Set;
@@ -16,6 +18,9 @@ import org.apache.logging.log4j.Logger;
 import com.algonquincollege.cst8277.entity.SecurityRole;
 import com.algonquincollege.cst8277.entity.SecurityUser;
 
+import static com.algonquincollege.cst8277.utility.MyConstants.PU_NAME;
+import static com.algonquincollege.cst8277.utility.MyConstants.PARAM1;
+
 import jakarta.ejb.Singleton;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
@@ -24,6 +29,7 @@ import jakarta.transaction.Transactional;
 
 @Singleton
 public class CustomIdentityStoreJPAHelper {
+
     private static final Logger LOG = LogManager.getLogger();
 
     @PersistenceContext(name = PU_NAME)
@@ -43,16 +49,23 @@ public class CustomIdentityStoreJPAHelper {
 
     public Set<String> findRoleNamesForUser(String username) {
         LOG.debug("find Roles For Username={}", username);
+        Set<String> roleNames = emptySet();
         SecurityUser securityUser = findUserByName(username);
-        if (securityUser == null) {
-            return emptySet();
+        if (securityUser != null) {
+            roleNames = securityUser.getRoles().stream().map(s -> s.getRoleName()).collect(Collectors.toSet());
         }
-        return securityUser.getRoles().stream().map(SecurityRole::getRoleName).collect(Collectors.toSet());
+        return roleNames;
     }
 
     @Transactional
-    public void saveSecurityUser(SecurityUser user) { em.persist(user); }
+    public void saveSecurityUser(SecurityUser user) {
+        LOG.debug("adding new user={}", user);
+        em.persist(user);
+    }
 
     @Transactional
-    public void saveSecurityRole(SecurityRole role) { em.persist(role); }
+    public void saveSecurityRole(SecurityRole role) {
+        LOG.debug("adding new role={}", role);
+        em.persist(role);
+    }
 }

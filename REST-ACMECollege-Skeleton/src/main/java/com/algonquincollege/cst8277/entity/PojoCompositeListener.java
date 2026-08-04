@@ -1,5 +1,9 @@
 /********************************************************************************************************
- * File: PojoCompositeListener.java Course Materials CST 8277
+ * File:  PojoCompositeListener.java Course Materials CST 8277
+ *
+ * @author Teddy Yap
+ * @author Shariar (Shawn) Emami
+ * 
  */
 package com.algonquincollege.cst8277.entity;
 
@@ -9,6 +13,7 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 
 public class PojoCompositeListener {
+
     @PrePersist
     public void setCreatedOnDate(PojoBaseCompositeKey<?> pojoBaseComposite) {
         LocalDateTime now = LocalDateTime.now();

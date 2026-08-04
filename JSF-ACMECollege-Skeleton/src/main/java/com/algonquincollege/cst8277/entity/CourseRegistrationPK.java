@@ -1,5 +1,8 @@
 /********************************************************************************************************
- * File: CourseRegistrationPK.java Course Materials CST 8277
+ * File:  CourseRegistrationPK.java Course Materials CST 8277
+ *
+ * @author Teddy Yap
+ * 
  */
 package com.algonquincollege.cst8277.entity;
 
@@ -12,6 +15,9 @@ import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
+/**
+ * The primary key class for the course_registration database table.
+ */
 @Embeddable
 @Access(AccessType.FIELD)
 public class CourseRegistrationPK implements Serializable {
@@ -25,17 +31,29 @@ public class CourseRegistrationPK implements Serializable {
     @Column(name = "course_id", nullable = false)
     protected int courseId;
 
-    public CourseRegistrationPK() {}
+    public CourseRegistrationPK() {
+    }
 
     public CourseRegistrationPK(int studentId, int courseId) {
         setStudentId(studentId);
         setCourseId(courseId);
     }
 
-    public int getStudentId() { return studentId; }
-    public void setStudentId(int studentId) { this.studentId = studentId; }
-    public int getCourseId() { return courseId; }
-    public void setCourseId(int courseId) { this.courseId = courseId; }
+    public int getStudentId() {
+        return this.studentId;
+    }
+
+    public void setStudentId(int studentId) {
+        this.studentId = studentId;
+    }
+
+    public int getCourseId() {
+        return this.courseId;
+    }
+
+    public void setCourseId(int courseId) {
+        this.courseId = courseId;
+    }
 
     @Override
     public int hashCode() {
@@ -46,17 +64,27 @@ public class CourseRegistrationPK implements Serializable {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) { return true; }
-        if (obj == null) { return false; }
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
         if (obj instanceof CourseRegistrationPK otherCourseRegistrationPK) {
-            return Objects.equals(this.getStudentId(), otherCourseRegistrationPK.getStudentId())
-                && Objects.equals(this.getCourseId(), otherCourseRegistrationPK.getCourseId());
+            return Objects.equals(this.getStudentId(), otherCourseRegistrationPK.getStudentId()) &&
+                Objects.equals(this.getCourseId(),  otherCourseRegistrationPK.getCourseId());
         }
         return false;
     }
 
     @Override
     public String toString() {
-        return "CourseRegistrationPK [studentId = " + studentId + ", courseId = " + courseId + "]";
+        StringBuilder builder = new StringBuilder();
+        builder.append("CourseRegistrationPK [studentId = ");
+        builder.append(studentId);
+        builder.append(", courseId = ");
+        builder.append(courseId);
+        builder.append("]");
+        return builder.toString();
     }
 }

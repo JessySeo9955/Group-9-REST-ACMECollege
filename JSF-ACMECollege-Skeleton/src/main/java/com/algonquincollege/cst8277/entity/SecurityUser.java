@@ -1,5 +1,9 @@
 /********************************************************************************************************
- * File: SecurityUser.java Course Materials CST 8277
+ * File:  SecurityUser.java Course Materials CST 8277
+ *
+ * @author Teddy Yap
+ * @author Shariar (Shawn) Emami
+ * 
  */
 package com.algonquincollege.cst8277.entity;
 
@@ -26,15 +30,20 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
-@Entity(name = "SecurityUser")
+@Entity
 @Table(name = "security_user")
 @Access(AccessType.FIELD)
-@NamedQuery(name = SecurityUser.SECURITY_USER_BY_NAME, query = "SELECT DISTINCT su FROM SecurityUser su LEFT JOIN FETCH su.roles LEFT JOIN FETCH su.student WHERE su.username = :param1")
-@NamedQuery(name = SecurityUser.SECURITY_USER_BY_STUDENT_ID, query = "SELECT DISTINCT su FROM SecurityUser su LEFT JOIN FETCH su.roles LEFT JOIN FETCH su.student WHERE su.student.id = :param1")
+@NamedQueries({
+    @NamedQuery(name = SecurityUser.SECURITY_USER_BY_NAME,
+        query = "SELECT su FROM SecurityUser su LEFT JOIN FETCH su.roles LEFT JOIN FETCH su.student WHERE su.username = :param1"),
+    @NamedQuery(name = SecurityUser.SECURITY_USER_BY_STUDENT_ID,
+        query = "SELECT su FROM SecurityUser su LEFT JOIN FETCH su.roles LEFT JOIN FETCH su.student WHERE su.student.id = :param1")
+})
 public class SecurityUser implements Serializable, Principal {
     private static final long serialVersionUID = 1L;
 
@@ -55,7 +64,7 @@ public class SecurityUser implements Serializable, Principal {
     @JsonIgnore
     protected String pwHash;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id", referencedColumnName = "id")
     protected Student student;
 
@@ -63,23 +72,57 @@ public class SecurityUser implements Serializable, Principal {
     @JoinTable(name = "user_has_role",
         joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "user_id"),
         inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "role_id"))
-    protected Set<SecurityRole> roles = new HashSet<>();
+    protected Set<SecurityRole> roles = new HashSet<SecurityRole>();
 
-    public SecurityUser() { super(); }
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
-    public String getPwHash() { return pwHash; }
-    public void setPwHash(String pwHash) { this.pwHash = pwHash; }
+    public SecurityUser() {
+        super();
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPwHash() {
+        return pwHash;
+    }
+
+    public void setPwHash(String pwHash) {
+        this.pwHash = pwHash;
+    }
+
     @JsonSerialize(using = SecurityRoleSerializer.class)
-    public Set<SecurityRole> getRoles() { return roles; }
-    public void setRoles(Set<SecurityRole> roles) { this.roles = roles; }
-    public Student getStudent() { return student; }
-    public void setStudent(Student student) { this.student = student; }
+    public Set<SecurityRole> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<SecurityRole> roles) {
+        this.roles = roles;
+    }
+
+    public Student getStudent() {
+        return student;
+    }
+
+    public void setStudent(Student student) {
+        this.student = student;
+    }
 
     @Override
-    public String getName() { return getUsername(); }
+    public String getName() {
+        return getUsername();
+    }
 
     @Override
     public int hashCode() {
@@ -90,8 +133,12 @@ public class SecurityUser implements Serializable, Principal {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) { return true; }
-        if (obj == null) { return false; }
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
         if (obj instanceof SecurityUser otherSecurityUser) {
             return Objects.equals(this.getId(), otherSecurityUser.getId());
         }
@@ -100,6 +147,8 @@ public class SecurityUser implements Serializable, Principal {
 
     @Override
     public String toString() {
-        return "SecurityUser [id = " + id + ", username = " + username + "]";
+        StringBuilder builder = new StringBuilder();
+        builder.append("SecurityUser [id = ").append(id).append(", username = ").append(username).append("]");
+        return builder.toString();
     }
 }

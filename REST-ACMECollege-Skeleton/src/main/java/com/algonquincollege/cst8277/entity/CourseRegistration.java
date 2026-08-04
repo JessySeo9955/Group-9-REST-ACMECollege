@@ -1,5 +1,8 @@
 /********************************************************************************************************
- * File: CourseRegistration.java Course Materials CST 8277
+ * File:  CourseRegistration.java Course Materials CST 8277
+ *
+ * @author Teddy Yap
+ * 
  */
 package com.algonquincollege.cst8277.entity;
 
@@ -19,15 +22,24 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
+import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
 
+/**
+ * The persistent class for the course_registration database table.
+ */
 @Entity
 @Table(name = "course_registration")
 @Access(AccessType.FIELD)
-@NamedQuery(name = CourseRegistration.ALL_COURSE_REGISTRATIONS_QUERY_NAME, query = "SELECT cr FROM CourseRegistration cr")
-@NamedQuery(name = CourseRegistration.QUERY_SPECIFIC_COURSE_REGISTRATION, query = "SELECT cr FROM CourseRegistration cr WHERE cr.student.id = :param1 AND cr.course.id = :param2")
-@NamedQuery(name = CourseRegistration.QUERY_COURSE_REGISTRATIONS_BY_STUDENT, query = "SELECT cr FROM CourseRegistration cr WHERE cr.student.id = :param1")
+@NamedQueries({
+    @NamedQuery(name = CourseRegistration.ALL_COURSE_REGISTRATIONS_QUERY_NAME,
+        query = "SELECT DISTINCT cr FROM CourseRegistration cr LEFT JOIN FETCH cr.course LEFT JOIN FETCH cr.professor LEFT JOIN FETCH cr.student"),
+    @NamedQuery(name = CourseRegistration.QUERY_SPECIFIC_COURSE_REGISTRATION,
+        query = "SELECT cr FROM CourseRegistration cr LEFT JOIN FETCH cr.course LEFT JOIN FETCH cr.professor LEFT JOIN FETCH cr.student WHERE cr.student.id = :param1 AND cr.course.id = :param2"),
+    @NamedQuery(name = CourseRegistration.QUERY_COURSE_REGISTRATIONS_BY_STUDENT,
+        query = "SELECT DISTINCT cr FROM CourseRegistration cr LEFT JOIN FETCH cr.course LEFT JOIN FETCH cr.professor LEFT JOIN FETCH cr.student WHERE cr.student.id = :param1")
+})
 public class CourseRegistration extends PojoBaseCompositeKey<CourseRegistrationPK> implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -36,7 +48,7 @@ public class CourseRegistration extends PojoBaseCompositeKey<CourseRegistrationP
     public static final String QUERY_COURSE_REGISTRATIONS_BY_STUDENT = "CourseRegistration.findByStudent";
 
     @EmbeddedId
-    protected CourseRegistrationPK id = new CourseRegistrationPK();
+    protected CourseRegistrationPK id;
 
     @MapsId("studentId")
     @ManyToOne(cascade = CascadeType.MERGE, optional = false, fetch = FetchType.LAZY)
@@ -71,34 +83,81 @@ public class CourseRegistration extends PojoBaseCompositeKey<CourseRegistrationP
     }
 
     @Override
-    public CourseRegistrationPK getId() { return id; }
+    public CourseRegistrationPK getId() {
+        return id;
+    }
+
     @Override
-    public void setId(CourseRegistrationPK id) { this.id = id; }
-    public Student getStudent() { return student; }
+    public void setId(CourseRegistrationPK id) {
+        this.id = id;
+    }
+
+    public Student getStudent() {
+        return student;
+    }
+
     public void setStudent(Student student) {
-        if (student != null) { id.setStudentId(student.getId()); }
+        if (student != null) {
+            id.setStudentId(student.getId());
+        }
         this.student = student;
     }
-    public Course getCourse() { return course; }
+
+    public Course getCourse() {
+        return course;
+    }
+
     public void setCourse(Course course) {
-        if (course != null) { id.setCourseId(course.getId()); }
+        if (course != null) {
+            id.setCourseId(course.getId());
+        }
         this.course = course;
     }
-    public Professor getProfessor() { return professor; }
-    public void setProfessor(Professor professor) { this.professor = professor; }
-    public int getYear() { return year; }
-    public void setYear(int year) { this.year = year; }
-    public String getSemester() { return semester; }
-    public void setSemester(String semester) { this.semester = semester; }
-    public String getLetterGrade() { return letterGrade; }
-    public void setLetterGrade(String letterGrade) { this.letterGrade = letterGrade; }
+
+    public Professor getProfessor() {
+        return professor;
+    }
+
+    public void setProfessor(Professor professor) {
+        this.professor = professor;
+    }
+
+    public int getYear() {
+        return year;
+    }
+
+    public void setYear(int year) {
+        this.year = year;
+    }
+
+    public String getSemester() {
+        return semester;
+    }
+
+    public void setSemester(String semester) {
+        this.semester = semester;
+    }
+
+    public String getLetterGrade() {
+        return letterGrade;
+    }
+
+    public void setLetterGrade(String letterGrade) {
+        this.letterGrade = letterGrade;
+    }
 
     @JsonProperty("studentId")
-    public int getStudentId() { return id == null ? 0 : id.getStudentId(); }
+    public int getStudentId() {
+        return id == null ? 0 : id.getStudentId();
+    }
 
     @JsonProperty("courseId")
-    public int getCourseId() { return id == null ? 0 : id.getCourseId(); }
+    public int getCourseId() {
+        return id == null ? 0 : id.getCourseId();
+    }
 
     @JsonProperty("professorId")
-    public Integer getProfessorId() { return professor == null ? null : professor.getId(); }
+    public Integer getProfessorId() {
+        return professor == null ? null : professor.getId();
+    }
 }

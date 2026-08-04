@@ -1,5 +1,8 @@
 /********************************************************************************************************
- * File: Course.java Course Materials CST 8277
+ * File:  Course.java Course Materials CST 8277
+ *
+ * @author Teddy Yap
+ * 
  */
 package com.algonquincollege.cst8277.entity;
 
@@ -22,17 +25,18 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 
-@Entity(name = "Course")
+/**
+ * The persistent class for the course database table.
+ */
+@Entity
 @Table(name = "course")
 @Access(AccessType.FIELD)
-@AttributeOverride(name = "id", column = @Column(name = "course_id"))
 @NamedQuery(name = Course.ALL_COURSES_QUERY, query = "SELECT DISTINCT c FROM Course c LEFT JOIN FETCH c.courseRegistrations")
-@NamedQuery(name = Course.QUERY_COURSE_BY_ID, query = "SELECT DISTINCT c FROM Course c LEFT JOIN FETCH c.courseRegistrations WHERE c.id = :param1")
+@AttributeOverride(name = "id", column = @Column(name = "course_id"))
 public class Course extends PojoBase implements Serializable {
     private static final long serialVersionUID = 1L;
 
     public static final String ALL_COURSES_QUERY = "Course.findAll";
-    public static final String QUERY_COURSE_BY_ID = "Course.findById";
 
     @Basic(optional = false)
     @Column(name = "course_code", nullable = false, length = 7)
@@ -50,30 +54,72 @@ public class Course extends PojoBase implements Serializable {
     @Column(name = "online", nullable = false)
     protected Short online;
 
-    @OneToMany(cascade = CascadeType.MERGE, fetch = FetchType.LAZY, mappedBy = "course")
+    @OneToMany(mappedBy = "course", cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
     @JsonIgnore
     protected Set<CourseRegistration> courseRegistrations = new HashSet<>();
 
     @Transient
     protected boolean editable = false;
 
-    public Course() { super(); }
-    public String getCourseCode() { return courseCode; }
-    public void setCourseCode(String courseCode) { this.courseCode = courseCode; }
-    public String getCourseTitle() { return courseTitle; }
-    public void setCourseTitle(String courseTitle) { this.courseTitle = courseTitle; }
-    public Integer getCreditUnits() { return creditUnits; }
-    public void setCreditUnits(Integer creditUnits) { this.creditUnits = creditUnits; }
-    public Short getOnline() { return online; }
-    public void setOnline(Short online) { this.online = online; }
-    public Set<CourseRegistration> getCourseRegistrations() { return courseRegistrations; }
-    public void setCourseRegistrations(Set<CourseRegistration> courseRegistrations) { this.courseRegistrations = courseRegistrations; }
-    public boolean isEditable() { return editable; }
-    public void setEditable(boolean editable) { this.editable = editable; }
+    public Course() {
+        super();
+    }
+
+    public String getCourseCode() {
+        return courseCode;
+    }
+
+    public void setCourseCode(String courseCode) {
+        this.courseCode = courseCode;
+    }
+
+    public String getCourseTitle() {
+        return courseTitle;
+    }
+
+    public void setCourseTitle(String courseTitle) {
+        this.courseTitle = courseTitle;
+    }
+
+    public Integer getCreditUnits() {
+        return creditUnits;
+    }
+
+    public void setCreditUnits(Integer creditUnits) {
+        this.creditUnits = creditUnits;
+    }
+
+    public Short getOnline() {
+        return online;
+    }
+
+    public void setOnline(Short online) {
+        this.online = online;
+    }
+
+    @JsonIgnore
+    public Set<CourseRegistration> getCourseRegistrations() {
+        return courseRegistrations;
+    }
+
+    public void setCourseRegistrations(Set<CourseRegistration> courseRegistrations) {
+        this.courseRegistrations = courseRegistrations;
+    }
+
+    public boolean isEditable() {
+        return editable;
+    }
+
+    public void setEditable(boolean editable) {
+        this.editable = editable;
+    }
 
     @Override
     public String toString() {
-        return "Course[id = " + id + ", courseCode = " + courseCode + ", courseTitle = " + courseTitle
-            + ", creditUnits = " + creditUnits + ", online = " + online + "]";
+        StringBuilder builder = new StringBuilder();
+        builder.append("Course[id = ").append(id).append(", courseCode = ").append(courseCode).append(", courseTitle = ")
+            .append(courseTitle).append(", creditUnits = ").append(creditUnits).append(", online = ").append(online)
+            .append(", created = ").append(created).append(", updated = ").append(updated).append(", version = ").append(version).append("]");
+        return builder.toString();
     }
 }

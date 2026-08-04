@@ -1,5 +1,9 @@
 /********************************************************************************************************
- * File: PojoBaseCompositeKey.java Course Materials CST 8277
+ * File:  PojoBaseCompositeKey.java Course Materials CST 8277
+ *
+ * @author Teddy Yap
+ * @author Shariar (Shawn) Emami
+ * 
  */
 package com.algonquincollege.cst8277.entity;
 
@@ -14,6 +18,10 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.Version;
 
+/**
+ * Abstract class that is base of (class) hierarchy for entities with composite keys.
+ * @param <ID> - type of composite key used
+ */
 @MappedSuperclass
 @Access(AccessType.FIELD)
 @EntityListeners(PojoCompositeListener.class)
@@ -31,13 +39,32 @@ public abstract class PojoBaseCompositeKey<ID extends Serializable> implements S
     protected LocalDateTime updated;
 
     public abstract ID getId();
+
     public abstract void setId(ID id);
-    public int getVersion() { return version; }
-    public void setVersion(int version) { this.version = version; }
-    public LocalDateTime getCreated() { return created; }
-    public void setCreated(LocalDateTime created) { this.created = created; }
-    public LocalDateTime getUpdated() { return updated; }
-    public void setUpdated(LocalDateTime updated) { this.updated = updated; }
+
+    public int getVersion() {
+        return version;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
+    }
+
+    public LocalDateTime getCreated() {
+        return created;
+    }
+
+    public void setCreated(LocalDateTime created) {
+        this.created = created;
+    }
+
+    public LocalDateTime getUpdated() {
+        return updated;
+    }
+
+    public void setUpdated(LocalDateTime updated) {
+        this.updated = updated;
+    }
 
     @Override
     public int hashCode() {
@@ -48,8 +75,12 @@ public abstract class PojoBaseCompositeKey<ID extends Serializable> implements S
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) { return true; }
-        if (obj == null) { return false; }
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
         if (obj instanceof PojoBaseCompositeKey otherPojoBaseComposite) {
             return Objects.equals(this.getId(), otherPojoBaseComposite.getId());
         }
