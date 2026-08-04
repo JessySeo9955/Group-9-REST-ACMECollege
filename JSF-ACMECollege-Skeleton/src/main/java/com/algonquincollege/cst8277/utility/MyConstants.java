@@ -33,7 +33,10 @@ public interface MyConstants {
     public static final String APPLICATION_API_VERSION = "/api/v1";
     public static final String REST_APPLICATION_PATH = SLASH + "api" + SLASH + "v1";
 
-    public static final String APPLICATION_CONTEXT_ROOT = SLASH + "REST-ACMECollege-Solution";
+    // Must match the context root the REST project actually deploys under, as set in
+    // REST-ACMECollege-Skeleton/.settings/org.eclipse.wst.common.component. Pointing this
+    // at "-Solution" makes every JSF -> REST call return 404.
+    public static final String APPLICATION_CONTEXT_ROOT = SLASH + "REST-ACMECollege-Skeleton";
     public static final String CREDENTIAL_RESOURCE_NAME = "credential";
     public static final String STUDENT_RESOURCE_NAME =  "student";
     public static final String PROGRAM_RESOURCE_PATH = SLASH + "program";
