@@ -76,8 +76,12 @@ public class StudentClub extends PojoBase implements Serializable {
 	protected String desc;
 
 	// TODO SC06 - Add the missing annotations.
+    // The 'academic' column is already mapped by @DiscriminatorColumn above.
+    // Mapping it again read-write makes Hibernate fail at boot with
+    // "Repeated column in mapping", so this field is read-only: the value is
+    // written by the discriminator and only read back into the field.
     @Basic(optional = false)
-    @Column(name = "academic", nullable = false)
+    @Column(name = "academic", nullable = false, insertable = false, updatable = false)
 	protected boolean isAcademic;
 
 	// TODO SC07 - Add the M:N annotation.  What should be the cascade and fetch types?
