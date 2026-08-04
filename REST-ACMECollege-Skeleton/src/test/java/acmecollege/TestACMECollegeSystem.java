@@ -365,8 +365,6 @@ public class TestACMECollegeSystem {
 
         assertThat(getResponse.getStatus(), is(404));
     }
-<<<<<<< HEAD
-
     /**
      * READ by id (positive): course 2 is CST8277 in the seed data. Confirms the
      * id-to-row mapping is not accidentally correct for a single row only.
