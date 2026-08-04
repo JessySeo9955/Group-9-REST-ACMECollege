@@ -365,4 +365,137 @@ public class TestACMECollegeSystem {
 
         assertThat(getResponse.getStatus(), is(404));
     }
+
+    /**
+     * READ by id (positive): course 2 is CST8277 in the seed data. Confirms the
+     * id-to-row mapping is not accidentally correct for a single row only.
+     */
+    @Test
+    public void test16_admin_get_second_seeded_course() throws JsonMappingException, JsonProcessingException {
+        Response response = webTarget
+            .register(adminAuth)
+            .path(COURSE_RESOURCE_NAME + "/2")
+            .request()
+            .get();
+
+        assertThat(response.getStatus(), is(200));
+        Course course = response.readEntity(Course.class);
+        assertThat(course, is(notNullValue()));
+        assertThat(course.getCourseCode(), is("CST8277"));
+        assertThat(course.getCreditUnits(), is(3));
+    }
+
+    /**
+     * NEGATIVE (authorization ordering): a USER_ROLE caller updating a course
+     * that does not exist still gets 403, never 404 - the container enforces
+     * @RolesAllowed before the resource method runs its entity lookup.
+     * A non-existent id is used deliberately so a regression in authorization
+     * cannot damage the seeded rows.
+     */
+    @Test
+    public void test17_user_cannot_update_course() {
+        Course updates = new Course();
+        updates.setCourseCode("CST8999");
+        updates.setCourseTitle("Should Not Be Updated");
+        updates.setCreditUnits(3);
+        updates.setOnline((short) 0);
+
+        Response response = webTarget
+            .register(userAuth)
+            .path(COURSE_RESOURCE_NAME + "/999999")
+            .request()
+            .put(Entity.json(updates));
+
+        assertThat(response.getStatus(), is(403));
+    }
+
+    /**
+     * NEGATIVE (authorization): a USER_ROLE caller may not delete a course.
+     * Uses a non-existent id for the same safety reason as test17.
+     */
+    @Test
+    public void test18_user_cannot_delete_course() {
+        Response response = webTarget
+            .register(userAuth)
+            .path(COURSE_RESOURCE_NAME + "/999999")
+            .request()
+            .delete();
+
+        assertThat(response.getStatus(), is(403));
+    }
+
+    /**
+     * NEGATIVE (authentication): an unauthenticated write is rejected at the
+     * authentication layer, before any authorization decision.
+     */
+    @Test
+    public void test19_anonymous_cannot_create_course() {
+        Course newCourse = new Course();
+        newCourse.setCourseCode("CST8997");
+        newCourse.setCourseTitle("Should Not Be Created");
+        newCourse.setCreditUnits(3);
+        newCourse.setOnline((short) 0);
+
+        Response response = webTarget
+            .path(COURSE_RESOURCE_NAME)
+            .request()
+            .post(Entity.json(newCourse));
+
+        assertThat(response.getStatus(), is(401));
+    }
+
+    /**
+     * NEGATIVE (authentication): a valid username with the wrong password is
+     * rejected by the identity store, exercising the PBKDF2 hash comparison
+     * rather than the role check.
+     */
+    @Test
+    public void test20_wrong_password_is_unauthorized() {
+        HttpAuthenticationFeature badAuth =
+            HttpAuthenticationFeature.basic(DEFAULT_ADMIN_USER, "definitely-not-the-password");
+
+        Response response = webTarget
+            .register(badAuth)
+            .path(COURSE_RESOURCE_NAME)
+            .request()
+            .get();
+
+        assertThat(response.getStatus(), is(401));
+    }
+
+    /**
+     * NEGATIVE (not found): updating an id with no matching row yields 404 for
+     * an admin - updateCourseById returns null and the resource maps that.
+     */
+    @Test
+    public void test21_admin_update_course_not_found() {
+        Course updates = new Course();
+        updates.setCourseCode("CST8996");
+        updates.setCourseTitle("No Such Course");
+        updates.setCreditUnits(3);
+        updates.setOnline((short) 0);
+
+        Response response = webTarget
+            .register(adminAuth)
+            .path(COURSE_RESOURCE_NAME + "/999999")
+            .request()
+            .put(Entity.json(updates));
+
+        assertThat(response.getStatus(), is(404));
+    }
+
+    /**
+     * NEGATIVE (not found): deleting an id with no matching row yields 404 for
+     * an admin rather than a 500 from an unguarded em.remove.
+     */
+    @Test
+    public void test22_admin_delete_course_not_found() {
+        Response response = webTarget
+            .register(adminAuth)
+            .path(COURSE_RESOURCE_NAME + "/999999")
+            .request()
+            .delete();
+
+        assertThat(response.getStatus(), is(404));
+    }
 }
