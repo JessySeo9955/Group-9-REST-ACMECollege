@@ -1,368 +1,184 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 <!DOCTYPE html>
-<html
-  lang="en"
+<html lang="en"
   xmlns="http://www.w3.org/1999/xhtml"
-  xmlns:jsf="http://xmlns.jcp.org/jsf"
-  xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
   xmlns:h="http://xmlns.jcp.org/jsf/html"
   xmlns:f="http://xmlns.jcp.org/jsf/core"
-  xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
-  xmlns:a="http://xmlns.jcp.org/jsf/passthrough"
-  >
+  xmlns:a="http://xmlns.jcp.org/jsf/passthrough">
 
   <f:metadata>
     <f:viewAction action="#{mainController.loadData()}" phase="UPDATE_MODEL_VALUES" />
   </f:metadata>
 
-  <!-- SPA (single-page-application) view that supports full C-R-U-D for Students -->
   <h:head>
     <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- title of tab/window in browser -->
     <title>#{uiconsts['viewTitle']}</title>
-    <!-- Use modern Frontend artifacts such as JQuery, Font Awesome, Bootstrap etc. -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" crossorigin="anonymous" />
     <link href="https://use.fontawesome.com/releases/v5.12.0/css/all.css" type="text/css" rel="stylesheet" crossorigin="anonymous" />
-    <link href="https://unpkg.com/bootstrap@4.5.2/dist/css/bootstrap.min.css" type="text/css" rel="stylesheet"  crossorigin="anonymous" />
+    <link href="https://unpkg.com/bootstrap@4.5.2/dist/css/bootstrap.min.css" type="text/css" rel="stylesheet" crossorigin="anonymous" />
     <script src="https://unpkg.com/bootstrap@4.5.2/dist/js/bootstrap.min.js" crossorigin="anonymous" />
-    
-    <!-- misc style tweaks: table hover color (you can change/add to this if you like) -->
     <style>
-      .table-hover tbody tr:hover td, .table-hover tbody tr:hover th {
-        background-color: #f0f0e0;
-      }
-      .table td {
-        position: relative;
-      }
-      .table td input {
-        position: absolute;
-        display: block;
-        top:0;
-        left:0;
-        height: 100% !important;
-        width: 100%;
-        border-radius: 0 !important;
-        border: 1px solid orange;
-        padding: 8px;
-        box-sizing: border-box;
-      }
-      .refreshFooter {
-        height: 100% !important;
-        display:block; 
-        text-align: center;
-      }
-      .placeholder-darkgray {
-       color: #a9a9a9
-      }
+      body { padding-bottom: 4rem; }
+      .table td input { width: 100%; }
+      .form-row .form-control { margin-bottom: .5rem; }
+      .section-title { margin: 1.25rem 0 .75rem; }
     </style>
   </h:head>
-  
+
   <h:body>
     <div class="container-fluid">
-    
-      <!-- top navigation bar -->
-      <nav id="topbar" class="navbar navbar-light bg-light">
+      <nav class="navbar navbar-light bg-light mb-3">
         <div class="navbar-header">
-          <i class="navbar-brand fa fa-school fa-lg"/>
-          <h:outputText value="#{uiconsts['viewTitle']}"/>
+          <i class="navbar-brand fa fa-school fa-lg"></i>
+          <h:outputText value="#{uiconsts['viewTitle']}" />
         </div>
-        <div class="navbar-header">
-          <h:panelGroup rendered="#{externalContext.userPrincipal eq null}">
-            <a href="#" data-toggle="modal" data-target="#loginModal"><span style="color: black;"><i class="fa fa-sign-in-alt" />&#160;#{uiconsts['signin']}</span></a>
-            <div id="loginModal" class="modal">
-              <h:form class="form" role="form" id="login">
-                <div class="modal-dialog">
-                  <div class="modal-content">
-                    <div class="modal-header">
-                      <h:outputText style="color: black;" escape="false" value="#{uiconsts['login']}" /> 
-                      <button type="button" class="close" data-dismiss="modal">&#8855;</button>
-                    </div>
-                    <div class="modal-body">
-                      <h:panelGroup cellpadding="2" cellspacing="1" class="input-group">
-                        <div class="input-group-prepend">
-                          <span class="input-group-text" id="username-addon"><i class="fa fa-edit fa-fw"/></span>
-                        </div>
-                        <h:inputText id="username" styleClass="form-control placeholder-darkgray"
-                          aria-describedby="username-addon" value="#{loginBean.username}" 
-                          a:placeholder="Username">
-                        </h:inputText>
-                        <h:message for="username" style="color:red" />
-                      </h:panelGroup>
-                      <h:panelGroup class="input-group">
-                        <div class="input-group-prepend">
-                          <span class="input-group-text" id="password-addon"><i class="fa fa-key fa-fw"/></span>
-                        </div>
-                        <br/>
-                        <h:inputSecret class="form-control placeholder-darkgray" aria-describedby="password-addon"
-                          a:placeholder="Password" value="#{loginBean.password}"
-                          id="password" />
-                      </h:panelGroup>
-                      <div class="form-group last text-right">
-                        <div class="col-sm-offset-3 col-sm-9">
-                          <h:commandButton class="btn btn-outline-dark" id="submit" value="#{uiconsts['login']}">
-                            <f:ajax execute="@form" render="@form" listener="#{loginBean.validateUsernamePassword()}" />
-                          </h:commandButton>
-                        </div>
-                      </div>
-                      <!-- is this working? -->
-                      <h:messages globalOnly="true" style="color:red" />
-                    </div>
-                  </div>
-                </div>
-              </h:form>
-            </div>
-          </h:panelGroup>
-          <h:panelGroup rendered="#{externalContext.userPrincipal ne null}"> 
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" style="color: black;" href="#" id="userDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <h:panelGroup class="fa #{request.isUserInRole('ADMIN_ROLE') ? 'fa-user-cog': 'fa-user-circle'}">
-                 <h:outputText value=" Welcome #{externalContext.userPrincipal.name}"/> 
-                </h:panelGroup>
-              </a>
-              <div class="dropdown-menu" aria-labelledby="userDropdown">
-                <div class="dropdown-item">
-                  <h:form id="logout">
-                    <h:commandButton action="#{loginBean.logout()}" value="#{uiconsts['signout']}" />
-                  </h:form>
-                </div>
-              </div>
-            </div>
-          </h:panelGroup>
-        </div>
+        <h:panelGroup rendered="#{externalContext.userPrincipal ne null}">
+          <h:form id="logout"><h:commandButton styleClass="btn btn-outline-dark" action="#{loginBean.logout()}" value="#{uiconsts['signout']}" /></h:form>
+        </h:panelGroup>
       </nav>
-      
-      <!-- footer
-         Bootstrap CSS is clever - even though this element is defined second under the 'container-fluid',
-         it is fixed to the bottom of the page
-       -->
-      <footer class="footer fixed-bottom bg-light text-center">
-        <h:outputText class="text-muted credit" value="Brought to you by #{uiconsts['footer']} (v#{uiconsts['version']})"/>
-      </footer>  
 
-      <!-- main content -->
-      <div id="main" role="main" class="main col-12">
-      
-        <!-- panel group for the option selection -->
-        <h:panelGroup rendered="#{(externalContext.userPrincipal ne null)}">
-          <h:form id="chooseOption">
-            <h:selectOneMenu id="choose_option" styleClass="form-control placeholder-darkgray"
-			  aria-describedby="option-addon"
-			  validatorMessage="#{uiconsts['choose_option']}"
-			  value="#{mainController.optionChosen}">
-			  <f:selectItem itemLabel="#{uiconsts['option_label']}" itemDisabled="true" />
-     		  <f:selectItems value="#{mainController.options}"/>
-			</h:selectOneMenu>
-            <h:commandButton value="#{uiconsts['submitLabel']}" action="#{mainController.submitForm()}" /> 
+      <h:panelGroup rendered="#{externalContext.userPrincipal eq null}">
+        <h:link outcome="login" value="#{uiconsts['signin']}" styleClass="btn btn-primary" />
+      </h:panelGroup>
+
+      <h:panelGroup rendered="#{externalContext.userPrincipal ne null}">
+        <h:form id="chooseOption" styleClass="mb-3">
+          <h:selectOneMenu id="choose_option" styleClass="form-control" value="#{mainController.optionChosen}">
+            <f:selectItems value="#{mainController.options}" />
+          </h:selectOneMenu>
+          <h:commandButton styleClass="btn btn-primary mt-2" value="#{uiconsts['submitLabel']}" action="#{mainController.submitForm()}" />
+        </h:form>
+
+        <h:panelGroup rendered="#{mainController.optionChosen == 'Student Management'}">
+          <h2 class="section-title">Student Management</h2>
+          <h:form id="studentAdd" styleClass="form-row">
+            <h:inputText styleClass="form-control col" value="#{newStudent.firstName}" a:placeholder="First Name" />
+            <h:inputText styleClass="form-control col" value="#{newStudent.lastName}" a:placeholder="Last Name" />
+            <h:inputText styleClass="form-control col" value="#{newStudent.email}" a:placeholder="Email" />
+            <h:inputText styleClass="form-control col" value="#{newStudent.phone}" a:placeholder="Phone" />
+            <h:selectOneMenu styleClass="form-control col" value="#{newStudent.program}"><f:selectItems value="#{studentController.programs}" /></h:selectOneMenu>
+            <h:commandButton styleClass="btn btn-success" value="Add" action="#{newStudent.addStudent()}" />
           </h:form>
-        </h:panelGroup>
-      
-        <!-- panel group for student management -->
-        <h:panelGroup rendered="#{(externalContext.userPrincipal ne null) and (mainController.optionChosen == 'Student Management')}"> 
-          <h:panelGroup rendered="#{request.isUserInRole('ADMIN_ROLE')}">
-            <h:form id="addStudent">
-              <h:commandLink action="#{studentController.toggleAdding()}">
-                <i class="fa fa-user-plus" />&#xa0;<h:outputText value="#{uiconsts['addStudentTitle']}" />
-              </h:commandLink>
-              <h:panelGroup rendered="#{studentController.adding}">
-                <h:panelGrid columns="2" cellpadding="2" cellspacing="1">
-                  <h:panelGroup class="input-group">
-                    <div class="input-group-prepend">
-                      <span class="input-group-text" id="firstName-addon"><i class="fa fa-edit fa-fw"/></span>
-                    </div>
-                    <h:inputText type="text" id="new_firstName" style="width: 50em;" styleClass="form-control placeholder-darkgray"
-                      aria-describedby="firstName-addon"
-                      validatorMessage="#{uiconsts['enter_valid_string']}" value="#{newStudent.firstName}"
-                      a:placeholder="#{uiconsts['columnLabel_FirstName']}">
-                      <f:validateLength minimum="1" maximum="100" />
-                    </h:inputText>
-                  </h:panelGroup>
-                  <h:message for="new_firstName" style="color:red" />
-                  <h:panelGroup class="input-group">
-                    <div class="input-group-prepend">
-                      <span class="input-group-text" id="lastName-addon"><i class="fa fa-edit fa-fw"/></span>
-                    </div>
-                    <h:inputText type="text" id="new_lastName" styleClass="form-control placeholder-darkgray"
-                      aria-describedby="lastName-addon"
-                      validatorMessage="#{uiconsts['enter_valid_string']}"
-                      value="#{newStudent.lastName}" a:placeholder="#{uiconsts['columnLabel_LastName']}">
-                      <f:validateLength minimum="1" maximum="100" />
-                    </h:inputText>
-                  </h:panelGroup>
-                  <h:message for="new_lastName" style="color:red" />
-                  <h:panelGroup class="input-group">
-                    <div class="input-group-prepend">
-                      <span class="input-group-text" id="email-addon"><i class="fa fa-envelope fa-fw"/></span>
-                    </div>
-                    <h:inputText type="text" id="new_email" styleClass="form-control placeholder-darkgray"
-                      aria-describedby="email-addon"
-                      validatorMessage="#{uiconsts['enter_valid_email']}"
-                      value="#{newStudent.email}" a:placeholder="#{uiconsts['columnLabel_Email']}">
-                      <f:validateRegex pattern=".+@.+" />
-                    </h:inputText>
-                  </h:panelGroup>
-                  <h:message for="new_email" style="color:red" />
-                  <h:panelGroup class="input-group">
-                    <div class="input-group-prepend">
-                      <span class="input-group-text" id="phone-addon"><i class="fa fa-phone fa-fw"/></span>
-                    </div>
-                    <h:inputText type="text" id="new_phone" styleClass="form-control placeholder-darkgray"
-                      aria-describedby="phone-addon"
-                      validatorMessage="#{uiconsts['enter_valid_string']}"
-                      value="#{newStudent.phone}" a:placeholder="#{uiconsts['columnLabel_Phone']}">
-                      <f:validateLength minimum="1" maximum="100" />
-                    </h:inputText>
-                  </h:panelGroup>
-                  <h:message for="new_phone" style="color:red" />
-  			      <h:panelGroup class="input-group">
-			        <!-- separation with program icon -->
-				    <div class="input-group-prepend">
-				      <span class="input-group-text" id="program-addon"><i
-				        class="fas fa-book fa-fw" />
-				      </span>
-				    </div>
-				    <!-- input field for the program of a new student attached NewStudentView-->
-				    <h:selectOneMenu id="new_program" styleClass="form-control placeholder-darkgray"
-				      aria-describedby="program-addon"
-				      validatorMessage="#{uiconsts['enter_valid_string']}"
-				      value="#{newStudent.program}">
-				      <f:selectItem itemLabel="#{uiconsts['columnLabel_Program']}" itemDisabled="true" />
-     			      <f:selectItems value="#{studentController.programs}"/>
-				    </h:selectOneMenu>
-			      </h:panelGroup>
-                </h:panelGrid>
-                <h:panelGrid id="actions" columns="2" cellpadding="10">
-                  <h:commandLink action="#{newStudent.addStudent()}" rendered="#{studentController.adding}">
-                    <i class="fa fa-user-plus fa-fw" />&#xa0;<h:outputText class="text-success" value="#{uiconsts['submitLabel']}" />
-                  </h:commandLink>
-                  <h:commandLink action="#{studentController.toggleAdding()}" immediate="true" 
-                    rendered="#{studentController.adding}">
-                    <i class="fa fa-undo fa-fw" />&#xa0;<h:outputText class="text-primary" value="#{uiconsts['cancelLabel']}" />
-                  </h:commandLink>
-                </h:panelGrid>
-              </h:panelGroup>
-            </h:form>
-            <br/>
-          </h:panelGroup>
           <h:form id="studentList">
-            <h:panelGroup rendered="#{externalContext.userPrincipal ne null}" >
-              <h:dataTable value="#{studentController.students}" var="student"
-                styleClass="table table-striped table-bordered table-hover"
-                headerClass="thead-light"
-                captionClass="text-center">
-                <h:column styleClass="width: 5%;">
-                  <f:facet name="header">#{uiconsts['columnLabel_Id']}</f:facet>
-                  <h:outputText value="#{student.id}" style="color:#000;" />
-                </h:column>
-                <h:column>
-                  <f:facet name="header">#{uiconsts['columnLabel_FirstName']}</f:facet>
-                  <h:outputText value="#{student.firstName}" rendered="#{not student.editable}" />
-                  <h:inputText id="firstName_editable" size="12" validatorMessage="#{uiconsts['enter_valid_string']}"
-                    value="#{student.firstName}" rendered="#{student.editable}">
-                    <f:validateLength minimum="1" maximum="100" />
-                  </h:inputText>
-                  <br/>
-                  <h:message for="firstName_editable" style="color:red" />
-                </h:column>
-                <h:column>
-                  <f:facet name="header">#{uiconsts['columnLabel_LastName']}</f:facet>
-                  <h:outputText value="#{student.lastName}" rendered="#{not student.editable}" />
-                  <h:inputText id="lastName_editable" size="12" validatorMessage="#{uiconsts['enter_valid_string']}"
-                    value="#{student.lastName}" rendered="#{student.editable}">
-                    <f:validateLength minimum="1" maximum="100" />
-                  </h:inputText>
-                  <br/>
-                  <h:message for="lastName_editable" style="color:red" />
-                </h:column>
-                <h:column>
-                  <f:facet name="header">#{uiconsts['columnLabel_Email']}</f:facet>
-                  <h:outputText value="#{student.email}" rendered="#{not student.editable}" />
-                  <h:inputText id="email_editable" size="12" validatorMessage="#{uiconsts['enter_valid_email']}"
-                    value="#{student.email}" rendered="#{student.editable}">
-                    <f:validateRegex pattern=".+@.+" />
-                  </h:inputText>
-                  <br/>
-                  <h:message for="email_editable" style="color:red" />
-                </h:column>
-                <h:column>
-                  <f:facet name="header">#{uiconsts['columnLabel_Phone']}</f:facet>
-                  <h:outputText value="#{student.phone}" rendered="#{not student.editable}" />
-                  <h:inputText id="phone_editable" size="12" validatorMessage="#{uiconsts['enter_valid_string']}"
-                    value="#{student.phone}" rendered="#{student.editable}">
-                    <f:validateLength minimum="1" maximum="100" />
-                  </h:inputText>
-                  <br/>
-                  <h:message for="phone_editable" style="color:red" />
-                </h:column>
-                <h:column>
-                  <f:facet name="header">#{uiconsts['columnLabel_Program']}</f:facet>
-                  <h:outputText value="#{student.program}" rendered="#{not student.editable}" />
- 			      <h:selectOneMenu id="program_editable"
-				    validatorMessage="#{uiconsts['enter_valid_string']}"
-				    value="#{student.program}" rendered="#{student.editable}">
-     			    <f:selectItems value="#{studentController.programs}"/>
-			      </h:selectOneMenu>
-                  <br/>
-                  <h:message for="program_editable" style="color:red" />
-                </h:column>
-                <!-- Action column -->
-                <h:column rendered="#{request.isUserInRole('ADMIN_ROLE')}">
-                  <f:facet name="header">#{uiconsts['columnLabel_Action']}</f:facet>
-                  <h:commandLink action="#{studentController.editStudent(student)}" rendered="#{not student.editable}">
-                    <i class="fa fa-edit fa-fw" />&#xa0;<h:outputText value="#{uiconsts['editLabel']}" />
-                  </h:commandLink>
-                  &#xa0;
-                  <h:commandLink action="#{studentController.updateStudent(student)}" rendered="#{student.editable}">
-                    <i class="fa fa-save fa-fw" />&#xa0;<h:outputText class="text-success" value="#{uiconsts['submitLabel']}" />
-                  </h:commandLink>
-                  &#xa0;
-                  <h:commandLink action="#{studentController.cancelUpdate(student)}" immediate="true"
-                    rendered="#{student.editable}">
-                    <i class="fa fa-undo fa-fw" />&#xa0;<h:outputText value="#{uiconsts['cancelLabel']}" />
-                  </h:commandLink>
-                  &#xa0;
-                  <h:panelGroup rendered="#{not student.editable}">
-                    <a href="#" data-toggle="modal" data-target="#removeStudentModal#{student.id}"><span class="fa fa-trash fa-fw" style="color:red" />&#xa0;<h:outputText value="#{uiconsts['deleteLabel']}" /></a>
-                    <div class="modal fade" tabindex="-1" role="dialog" id="removeStudentModal#{student.id}">
-                      <div class="modal-dialog" role="document">
-                        <div class="modal-content">
-                          <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&#8855;</span></button>
-                          </div>
-                          <div class="modal-body">
-                            <p>#{uiconsts['russ']} (#{student.id})</p>
-                          </div>
-                          <div class="modal-footer">
-                            <div class="form-group last text-right">
-                              <button type="button" class="btn btn-outline-default" data-dismiss="modal">#{uiconsts['cancelLabel']}</button>
-                              <h:panelGroup>
-                                <button type="button" class="btn btn-outline-dark" data-dismiss="modal">#{uiconsts['deleteLabel']}
-                                  <f:ajax event="click" listener="#{studentController.deleteStudent(student.id)}" render="@form :studentList"/>
-                                </button>
-                              </h:panelGroup>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>        
-                  </h:panelGroup>
-                </h:column>
-              </h:dataTable>
-              <h:panelGroup class="refreshFooter">
-                <h:commandButton value="#{uiconsts['refreshButtonLabel']}" action="#{studentController.refreshStudentForm()}" /> 
-              </h:panelGroup>
-            </h:panelGroup>
+            <h:dataTable value="#{studentController.students}" var="student" styleClass="table table-striped table-bordered table-hover">
+              <h:column><f:facet name="header">Id</f:facet><h:outputText value="#{student.id}" /></h:column>
+              <h:column><f:facet name="header">First Name</f:facet><h:inputText value="#{student.firstName}" /></h:column>
+              <h:column><f:facet name="header">Last Name</f:facet><h:inputText value="#{student.lastName}" /></h:column>
+              <h:column><f:facet name="header">Email</f:facet><h:inputText value="#{student.email}" /></h:column>
+              <h:column><f:facet name="header">Phone</f:facet><h:inputText value="#{student.phone}" /></h:column>
+              <h:column><f:facet name="header">Program</f:facet><h:inputText value="#{student.program}" /></h:column>
+              <h:column><f:facet name="header">Action</f:facet><h:commandButton styleClass="btn btn-sm btn-success" value="Save" action="#{studentController.updateStudent(student)}" /> <h:commandButton styleClass="btn btn-sm btn-danger" value="Delete" action="#{studentController.deleteStudent(student.id)}" /></h:column>
+            </h:dataTable>
           </h:form>
-          <h:messages globalOnly="true" layout="table" styleClass="alert alert-danger"/>
         </h:panelGroup>
 
-        <!-- add your different panel groups here -->
+        <h:panelGroup rendered="#{mainController.optionChosen == 'Course Management'}">
+          <h2 class="section-title">Course Management</h2>
+          <h:form id="courseAdd" styleClass="form-row">
+            <h:inputText styleClass="form-control col" value="#{collegeController.newCourse.courseCode}" a:placeholder="Code" />
+            <h:inputText styleClass="form-control col" value="#{collegeController.newCourse.courseTitle}" a:placeholder="Title" />
+            <h:inputText styleClass="form-control col" value="#{collegeController.newCourse.creditUnits}" a:placeholder="Credits" />
+            <h:selectOneMenu styleClass="form-control col" value="#{collegeController.newCourse.online}"><f:selectItem itemValue="0" itemLabel="In Person" /><f:selectItem itemValue="1" itemLabel="Online" /></h:selectOneMenu>
+            <h:commandButton styleClass="btn btn-success" value="Add" action="#{collegeController.addCourse()}" />
+          </h:form>
+          <h:form id="courseList"><h:dataTable value="#{collegeController.courses}" var="course" styleClass="table table-striped table-bordered table-hover">
+            <h:column><f:facet name="header">Id</f:facet>#{course.id}</h:column>
+            <h:column><f:facet name="header">Code</f:facet><h:inputText value="#{course.courseCode}" /></h:column>
+            <h:column><f:facet name="header">Title</f:facet><h:inputText value="#{course.courseTitle}" /></h:column>
+            <h:column><f:facet name="header">Credits</f:facet><h:inputText value="#{course.creditUnits}" /></h:column>
+            <h:column><f:facet name="header">Online</f:facet><h:inputText value="#{course.online}" /></h:column>
+            <h:column><f:facet name="header">Action</f:facet><h:commandButton styleClass="btn btn-sm btn-success" value="Save" action="#{collegeController.updateCourse(course)}" /> <h:commandButton styleClass="btn btn-sm btn-danger" value="Delete" action="#{collegeController.deleteCourse(course.id)}" /></h:column>
+          </h:dataTable></h:form>
+        </h:panelGroup>
 
+        <h:panelGroup rendered="#{mainController.optionChosen == 'Professor Management'}">
+          <h2 class="section-title">Professor Management</h2>
+          <h:form id="professorAdd" styleClass="form-row">
+            <h:inputText styleClass="form-control col" value="#{collegeController.newProfessor.firstName}" a:placeholder="First Name" />
+            <h:inputText styleClass="form-control col" value="#{collegeController.newProfessor.lastName}" a:placeholder="Last Name" />
+            <h:selectOneMenu styleClass="form-control col" value="#{collegeController.newProfessor.degree}"><f:selectItems value="#{collegeController.degrees}" /></h:selectOneMenu>
+            <h:commandButton styleClass="btn btn-success" value="Add" action="#{collegeController.addProfessor()}" />
+          </h:form>
+          <h:form id="professorList"><h:dataTable value="#{collegeController.professors}" var="professor" styleClass="table table-striped table-bordered table-hover">
+            <h:column><f:facet name="header">Id</f:facet>#{professor.id}</h:column>
+            <h:column><f:facet name="header">First Name</f:facet><h:inputText value="#{professor.firstName}" /></h:column>
+            <h:column><f:facet name="header">Last Name</f:facet><h:inputText value="#{professor.lastName}" /></h:column>
+            <h:column><f:facet name="header">Degree</f:facet><h:inputText value="#{professor.degree}" /></h:column>
+            <h:column><f:facet name="header">Action</f:facet><h:commandButton styleClass="btn btn-sm btn-success" value="Save" action="#{collegeController.updateProfessor(professor)}" /> <h:commandButton styleClass="btn btn-sm btn-danger" value="Delete" action="#{collegeController.deleteProfessor(professor.id)}" /></h:column>
+          </h:dataTable></h:form>
+        </h:panelGroup>
 
-        
+        <h:panelGroup rendered="#{mainController.optionChosen == 'Student Club Management'}">
+          <h2 class="section-title">Student Club Management</h2>
+          <h:form id="clubAdd" styleClass="form-row">
+            <h:inputText styleClass="form-control col" value="#{collegeController.newStudentClub.name}" a:placeholder="Name" />
+            <h:inputText styleClass="form-control col" value="#{collegeController.newStudentClub.desc}" a:placeholder="Description" />
+            <label class="col-form-label mr-2">Academic</label><h:selectBooleanCheckbox value="#{collegeController.newStudentClub.academic}" />
+            <h:commandButton styleClass="btn btn-success ml-3" value="Add" action="#{collegeController.addStudentClub()}" />
+          </h:form>
+          <h:form id="clubList"><h:dataTable value="#{collegeController.studentClubs}" var="club" styleClass="table table-striped table-bordered table-hover">
+            <h:column><f:facet name="header">Id</f:facet>#{club.id}</h:column>
+            <h:column><f:facet name="header">Name</f:facet><h:inputText value="#{club.name}" /></h:column>
+            <h:column><f:facet name="header">Description</f:facet><h:inputText value="#{club.desc}" /></h:column>
+            <h:column><f:facet name="header">Academic</f:facet>#{club.academic}</h:column>
+            <h:column><f:facet name="header">Action</f:facet><h:commandButton styleClass="btn btn-sm btn-success" value="Save" action="#{collegeController.updateStudentClub(club)}" /> <h:commandButton styleClass="btn btn-sm btn-danger" value="Delete" action="#{collegeController.deleteStudentClub(club.id)}" /></h:column>
+          </h:dataTable></h:form>
+        </h:panelGroup>
 
-        
-      </div>
+        <h:panelGroup rendered="#{mainController.optionChosen == 'Course Registration'}">
+          <h2 class="section-title">Course Registration</h2>
+          <h:form id="registrationAdd" styleClass="form-row">
+            <h:inputText styleClass="form-control col" value="#{collegeController.selectedStudentId}" a:placeholder="Student Id" />
+            <h:inputText styleClass="form-control col" value="#{collegeController.selectedCourseId}" a:placeholder="Course Id" />
+            <h:inputText styleClass="form-control col" value="#{collegeController.newRegistration.year}" a:placeholder="Year" />
+            <h:selectOneMenu styleClass="form-control col" value="#{collegeController.newRegistration.semester}"><f:selectItems value="#{collegeController.semesters}" /></h:selectOneMenu>
+            <h:commandButton styleClass="btn btn-success" value="Register" action="#{collegeController.addCourseRegistration()}" />
+          </h:form>
+          <h:form id="registrationList"><h:dataTable value="#{collegeController.courseRegistrations}" var="reg" styleClass="table table-striped table-bordered table-hover">
+            <h:column><f:facet name="header">Student</f:facet>#{reg.studentId}</h:column>
+            <h:column><f:facet name="header">Course</f:facet>#{reg.courseId}</h:column>
+            <h:column><f:facet name="header">Professor</f:facet>#{reg.professorId}</h:column>
+            <h:column><f:facet name="header">Year</f:facet>#{reg.year}</h:column>
+            <h:column><f:facet name="header">Semester</f:facet>#{reg.semester}</h:column>
+            <h:column><f:facet name="header">Grade</f:facet>#{reg.letterGrade}</h:column>
+            <h:column><f:facet name="header">Action</f:facet><h:commandButton styleClass="btn btn-sm btn-danger" value="Delete" action="#{collegeController.deleteCourseRegistration(reg)}" /></h:column>
+          </h:dataTable></h:form>
+        </h:panelGroup>
+
+        <h:panelGroup rendered="#{mainController.optionChosen == 'Assign Professor'}">
+          <h2 class="section-title">Assign Professor</h2>
+          <h:form id="assignProfessor" styleClass="form-row">
+            <h:inputText styleClass="form-control col" value="#{collegeController.selectedStudentId}" a:placeholder="Student Id" />
+            <h:inputText styleClass="form-control col" value="#{collegeController.selectedCourseId}" a:placeholder="Course Id" />
+            <h:inputText styleClass="form-control col" value="#{collegeController.selectedProfessorId}" a:placeholder="Professor Id" />
+            <h:commandButton styleClass="btn btn-success" value="Assign" action="#{collegeController.assignProfessor()}" />
+          </h:form>
+        </h:panelGroup>
+
+        <h:panelGroup rendered="#{mainController.optionChosen == 'Assign Grade'}">
+          <h2 class="section-title">Assign Grade</h2>
+          <h:form id="assignGrade" styleClass="form-row">
+            <h:inputText styleClass="form-control col" value="#{collegeController.selectedStudentId}" a:placeholder="Student Id" />
+            <h:inputText styleClass="form-control col" value="#{collegeController.selectedCourseId}" a:placeholder="Course Id" />
+            <h:selectOneMenu styleClass="form-control col" value="#{collegeController.selectedGrade}"><f:selectItems value="#{collegeController.letterGrades}" /></h:selectOneMenu>
+            <h:commandButton styleClass="btn btn-success" value="Assign" action="#{collegeController.assignGrade()}" />
+          </h:form>
+        </h:panelGroup>
+
+        <h:panelGroup rendered="#{mainController.optionChosen == 'Club Membership Registration'}">
+          <h2 class="section-title">Club Membership Registration</h2>
+          <h:form id="clubMembership" styleClass="form-row">
+            <h:inputText styleClass="form-control col" value="#{collegeController.selectedClubId}" a:placeholder="Club Id" />
+            <h:inputText styleClass="form-control col" value="#{collegeController.selectedStudentId}" a:placeholder="Student Id" />
+            <h:commandButton styleClass="btn btn-success" value="Register" action="#{collegeController.addClubMembership()}" />
+          </h:form>
+        </h:panelGroup>
+      </h:panelGroup>
+
+      <footer class="footer fixed-bottom bg-light text-center">
+        <h:outputText class="text-muted credit" value="Brought to you by Group 9 - CST8277 (v#{uiconsts['version']})" />
+      </footer>
     </div>
   </h:body>
 </html>

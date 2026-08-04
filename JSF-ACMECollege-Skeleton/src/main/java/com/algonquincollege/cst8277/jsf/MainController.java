@@ -1,9 +1,5 @@
 /********************************************************************************************************
- * File:  MainController.java
- * Course Materials CST 8277
- * 
- * @author Teddy Yap
- *
+ * File: MainController.java Course Materials CST 8277
  */
 package com.algonquincollege.cst8277.jsf;
 
@@ -21,7 +17,6 @@ import jakarta.inject.Named;
 @Named("mainController")
 @SessionScoped
 public class MainController implements Serializable, MyConstants {
-    /** explicit set serialVersionUID */
     private static final long serialVersionUID = 1L;
 
     public static final String NONE = "None";
@@ -33,41 +28,43 @@ public class MainController implements Serializable, MyConstants {
     public static final String ASSIGN_PROFESSOR = "Assign Professor";
     public static final String ASSIGN_GRADE = "Assign Grade";
     public static final String CLUB_MEMBERSHIP_REGISTRATION = "Club Membership Registration";
-    
-    @Inject
-    protected StudentController studentController;
 
-    //TODO Add your own controllers here
-    
-    protected String optionChosen = "None";
-    protected List<String> options = Stream.of(NONE, STUDENT_MANAGEMENT, COURSE_MANAGEMENT, PROFESSOR_MANAGEMENT, STUDENT_CLUB_MANAGEMENT, COURSE_REGISTRATION, ASSIGN_PROFESSOR, ASSIGN_GRADE, CLUB_MEMBERSHIP_REGISTRATION).collect(Collectors.toList());
-    
-    public MainController() {
-    	super();
-    }
-    
-    public String getOptionChosen() {
-    	return optionChosen;
-    }
-    
-    public void setOptionChosen(String option) {
-    	optionChosen = option;
-    }
-    
-    public List<String> getOptions() {
-    	return options;
-    }
-    
-    public String submitForm() {
-    	return null; //current page
-    }
-    
+    @Inject protected StudentController studentController;
+    @Inject protected CollegeController collegeController;
+
+    protected String optionChosen = NONE;
+    protected List<String> options = Stream.of(NONE, STUDENT_MANAGEMENT, COURSE_MANAGEMENT, PROFESSOR_MANAGEMENT,
+        STUDENT_CLUB_MANAGEMENT, COURSE_REGISTRATION, ASSIGN_PROFESSOR, ASSIGN_GRADE, CLUB_MEMBERSHIP_REGISTRATION)
+        .collect(Collectors.toList());
+
+    public String getOptionChosen() { return optionChosen; }
+    public void setOptionChosen(String option) { optionChosen = option; }
+    public List<String> getOptions() { return options; }
+    public String submitForm() { loadData(); return null; }
+
     public void loadData() {
-    	switch (optionChosen) {
-    		case STUDENT_MANAGEMENT: studentController.loadStudents();
-    		break;
-    		//TODO Add your own cases here
-    	}
+        switch (optionChosen) {
+            case STUDENT_MANAGEMENT:
+                studentController.loadStudents();
+                break;
+            case COURSE_MANAGEMENT:
+                collegeController.loadCourses();
+                break;
+            case PROFESSOR_MANAGEMENT:
+                collegeController.loadProfessors();
+                collegeController.loadDegrees();
+                break;
+            case STUDENT_CLUB_MANAGEMENT:
+            case CLUB_MEMBERSHIP_REGISTRATION:
+                collegeController.loadStudentClubs();
+                break;
+            case COURSE_REGISTRATION:
+            case ASSIGN_PROFESSOR:
+            case ASSIGN_GRADE:
+                collegeController.loadCourseRegistrations();
+                break;
+            default:
+                break;
+        }
     }
-    
 }
