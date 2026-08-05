@@ -26,6 +26,7 @@ import static com.algonquincollege.cst8277.utility.MyConstants.USER_ROLE;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -267,26 +268,34 @@ public class ACMECollegeService implements Serializable {
     }
 
     @Transactional
-    public StudentClub deleteStudentClubById(int id) {
-        StudentClub club = getStudentClubById(id);
-        if (club != null) {
-            em.remove(club);
+    public StudentClub deleteStudentClubById(int clubId) {
+
+        StudentClub club = getStudentClubById(clubId);
+
+        if (club == null) {
+            return null;
         }
+
+        // Remove the relationship from every student
+        for (Student student : new HashSet<>(club.getStudentMembers())) {
+            student.getStudentClubs().remove(club);
+            club.getStudentMembers().remove(student);
+            em.merge(student);
+        }
+
+        em.flush();
+
+        em.remove(em.contains(club) ? club : em.merge(club));
+
         return club;
     }
 
     @Transactional
     public StudentClub addStudentToClub(int clubId, int studentId) {
     	
-    	System.out.println("========================== addStudentToClub ===========");
- 	   System.out.println("========================== addStudentToClub =========== clubId: "+ clubId);
- 	   System.out.println("========================== addStudentToClub =========== selectedStudentId: " + studentId);
-    	
         StudentClub club = getStudentClubById(clubId);
         Student student = getStudentById(studentId);
         
-        System.out.println("========================== addStudentToClub ===========" + club);
-        System.out.println("========================== addStudentToClub ===========" + student);
         if (club == null || student == null) {
             return null;
         }

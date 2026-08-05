@@ -121,6 +121,14 @@ public class CollegeController implements Serializable, MyConstants {
     public String getSelectedGrade() { return selectedGrade; }
     public void setSelectedGrade(String selectedGrade) { this.selectedGrade = selectedGrade; }
     
+    public void setRegisteredClubs(List<StudentClub> registeredClubs) {
+        this.registeredClubs = registeredClubs;
+    }
+    public void setUnRegisteredClubs(List<StudentClub> unRegisteredClubs) {
+        this.unRegisteredClubs = unRegisteredClubs;
+    }
+
+    
     public List<StudentClub> loadStudentMemberships() {
     	registeredClubs = target().path(STUDENT_CLUB_RESOURCE_NAME+"/student/" + this.selectedStudentId).request().get(new GenericType<List<StudentClub>>(){});
     	unRegisteredClubs= target().path(STUDENT_CLUB_RESOURCE_NAME+"/student/" + this.selectedStudentId + "/unregistered").request().get(new GenericType<List<StudentClub>>(){});

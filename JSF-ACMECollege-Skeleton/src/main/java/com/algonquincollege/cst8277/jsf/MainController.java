@@ -8,6 +8,7 @@
 package com.algonquincollege.cst8277.jsf;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -92,6 +93,8 @@ public class MainController implements Serializable, MyConstants {
                 collegeController.loadLetterGrades();
                 break;
             case CLUB_MEMBERSHIP_REGISTRATION:
+            	collegeController.setRegisteredClubs(new ArrayList<>());
+            	collegeController.setUnRegisteredClubs(new ArrayList<>());
             	collegeController.setSelectedStudentId(-1);
             	collegeController.loadStudentClubs();
             	studentController.loadStudents();
