@@ -10,6 +10,8 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.hibernate.annotations.DiscriminatorFormula;
+
 import jakarta.persistence.Access;
 import jakarta.persistence.AccessType;
 import jakarta.persistence.AttributeOverride;
@@ -55,10 +57,9 @@ import com.algonquincollege.cst8277.entity.NonAcademic;
     query = "SELECT DISTINCT sc FROM StudentClub sc LEFT JOIN FETCH sc.studentMembers"
 )
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(
-    name = "academic",
-    discriminatorType = DiscriminatorType.INTEGER
-)
+@DiscriminatorFormula(
+		 "CASE WHEN academic = 1 THEN 1 ELSE 0 END"
+	)
 @AttributeOverride(name = "id", column = @Column(name = "club_id"))
 public class StudentClub extends PojoBase implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -81,8 +82,9 @@ public class StudentClub extends PojoBase implements Serializable {
     // "Repeated column in mapping", so this field is read-only: the value is
     // written by the discriminator and only read back into the field.
     @Basic(optional = false)
-    @Column(name = "academic", nullable = false, insertable = false, updatable = false)
-	protected boolean isAcademic;
+    @Column(
+	    name = "academic", nullable = false)
+    protected boolean isAcademic;
 
 	// TODO SC07 - Add the M:N annotation.  What should be the cascade and fetch types?
 	// TODO SC08 - Add other missing annotations.

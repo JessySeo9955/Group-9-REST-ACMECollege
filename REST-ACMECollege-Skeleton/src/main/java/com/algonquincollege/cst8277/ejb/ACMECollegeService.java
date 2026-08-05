@@ -244,6 +244,7 @@ public class ACMECollegeService implements Serializable {
     public StudentClub getStudentClubById(int id) {
         return em.find(StudentClub.class, id);
     }
+    
 
     @Transactional
     public StudentClub persistStudentClub(StudentClub club) {
@@ -389,4 +390,40 @@ public class ACMECollegeService implements Serializable {
     public List<String> getAllLetterGrades() {
         return em.createNativeQuery(READ_ALL_LETTER_GRADES).getResultList();
     }
+
+	public List<StudentClub> getStudentClubsByStudent(int studentId) {
+		return em.createNamedQuery(
+	            Student.STUDENT_CLUBS_QUERY,
+	            StudentClub.class)
+	        .setParameter(PARAM1, studentId)
+	        .getResultList();
+	}
+	
+	public List<StudentClub> getUnregisteredStudentClubs(int studentId) {
+
+	    return em.createNamedQuery(
+	            Student.UNREGISTERED_STUDENT_CLUBS_QUERY,
+	            StudentClub.class)
+	        .setParameter(PARAM1, studentId)
+	        .getResultList();
+	}
+
+	@Transactional
+	public StudentClub removeStudentFromClub(int clubId, int studentId) {
+
+	    StudentClub club = getStudentClubById(clubId);
+	    Student student = getStudentById(studentId);
+
+	    if (club == null || student == null) {
+	        return null;
+	    }
+
+	    club.getStudentMembers().remove(student);
+
+	    em.merge(club);
+	    em.flush();
+
+	    return club;
+	}
+	
 }

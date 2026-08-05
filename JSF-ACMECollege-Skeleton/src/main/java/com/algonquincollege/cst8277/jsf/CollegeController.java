@@ -2,6 +2,7 @@ package com.algonquincollege.cst8277.jsf;
 
 import java.io.Serializable;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.glassfish.jersey.client.ClientConfig;
@@ -39,6 +40,8 @@ public class CollegeController implements Serializable, MyConstants {
     protected List<Course> courses;
     protected List<Professor> professors;
     protected List<StudentClub> studentClubs;
+    protected List<StudentClub> registeredClubs;
+    protected List<StudentClub> unRegisteredClubs;
     protected List<CourseRegistration> courseRegistrations;
     protected List<String> degrees;
     protected List<String> semesters;
@@ -93,10 +96,13 @@ public class CollegeController implements Serializable, MyConstants {
     public List<Course> getCourses() { if (courses == null) loadCourses(); return courses; }
     public List<Professor> getProfessors() { if (professors == null) loadProfessors(); return professors; }
     public List<StudentClub> getStudentClubs() { if (studentClubs == null) loadStudentClubs(); return studentClubs; }
+    public List<StudentClub> getRegisteredClubs() { if (registeredClubs == null) return new ArrayList<>(); return registeredClubs; }
+    public List<StudentClub> getUnRegisteredClubs() { if (unRegisteredClubs == null) return new ArrayList<>(); return unRegisteredClubs; }
     public List<CourseRegistration> getCourseRegistrations() { if (courseRegistrations == null) loadCourseRegistrations(); return courseRegistrations; }
     public List<String> getDegrees() { if (degrees == null) loadDegrees(); return degrees; }
     public List<String> getSemesters() { if (semesters == null) loadSemesters(); return semesters; }
     public List<String> getLetterGrades() { if (letterGrades == null) loadLetterGrades(); return letterGrades; }
+    
     public Course getNewCourse() { return newCourse; }
     public Professor getNewProfessor() { return newProfessor; }
     public StudentClub getNewStudentClub() { return newStudentClub; }
@@ -111,4 +117,29 @@ public class CollegeController implements Serializable, MyConstants {
     public void setSelectedClubId(int selectedClubId) { this.selectedClubId = selectedClubId; }
     public String getSelectedGrade() { return selectedGrade; }
     public void setSelectedGrade(String selectedGrade) { this.selectedGrade = selectedGrade; }
+    
+    public List<StudentClub> loadStudentMemberships() {
+    	registeredClubs = target().path(STUDENT_CLUB_RESOURCE_NAME+"/student/" + this.selectedStudentId).request().get(new GenericType<List<StudentClub>>(){});
+    	unRegisteredClubs= target().path(STUDENT_CLUB_RESOURCE_NAME+"/student/" + this.selectedStudentId + "/unregistered").request().get(new GenericType<List<StudentClub>>(){});
+    	return null;  
+    }
+    
+    public void deleteStudentFromClub(int clubId) {
+	   target()
+       .path(STUDENT_CLUB_RESOURCE_NAME + "/" + clubId + "/student/" + selectedStudentId)
+       .request()
+       .delete();
+
+       loadStudentMemberships();
+    }
+    
+   public void addStudentToClub(int clubId) {
+	   target()
+       .path(STUDENT_CLUB_RESOURCE_NAME + "/" + clubId + "/student/" + selectedStudentId)
+       .request()
+       .post(Entity.text(""));
+
+   loadStudentMemberships();
+    	
+    }
 }
