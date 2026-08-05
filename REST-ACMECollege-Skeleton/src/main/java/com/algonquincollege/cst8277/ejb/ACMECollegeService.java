@@ -277,14 +277,23 @@ public class ACMECollegeService implements Serializable {
 
     @Transactional
     public StudentClub addStudentToClub(int clubId, int studentId) {
+    	
+    	System.out.println("========================== addStudentToClub ===========");
+ 	   System.out.println("========================== addStudentToClub =========== clubId: "+ clubId);
+ 	   System.out.println("========================== addStudentToClub =========== selectedStudentId: " + studentId);
+    	
         StudentClub club = getStudentClubById(clubId);
         Student student = getStudentById(studentId);
+        
+        System.out.println("========================== addStudentToClub ===========" + club);
+        System.out.println("========================== addStudentToClub ===========" + student);
         if (club == null || student == null) {
             return null;
         }
-        club.getStudentMembers().add(student);
-        em.merge(club);
-        em.flush();
+        student.getStudentClubs().add(club);          // Owning side
+        club.getStudentMembers().add(student); // Keep both sides in sync
+
+        em.merge(student); // Merge the owning side
         return club;
     }
     public Course getCourseById(int id) {
@@ -418,6 +427,10 @@ public class ACMECollegeService implements Serializable {
 	        return null;
 	    }
 
+	 // Remove from the owning side
+	    student.getStudentClubs().remove(club);
+
+	    // Keep the inverse side in sync
 	    club.getStudentMembers().remove(student);
 
 	    em.merge(club);

@@ -36,11 +36,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 
 import com.algonquincollege.cst8277.entity.Academic;
 import com.algonquincollege.cst8277.entity.NonAcademic;
-
 @SuppressWarnings("unused")
 
 /**
@@ -135,13 +135,7 @@ public class StudentClub extends PojoBase implements Serializable {
 		return studentMembers;
 	}
 
-	@ManyToMany(fetch = FetchType.LAZY)
-	@JoinTable(
-	    name = "club_membership",
-	    joinColumns = @JoinColumn(name = "club_id"),
-	    inverseJoinColumns = @JoinColumn(name = "student_id")
-	)
-	@JsonIgnore
+
 	public void setStudentMembers(Set<Student> studentMembers) {
 		this.studentMembers = studentMembers;
 	}

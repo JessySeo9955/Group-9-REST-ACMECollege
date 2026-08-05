@@ -88,18 +88,14 @@ public class StudentClub extends PojoBase implements Serializable {
 
 	// TODO SC07 - Add the M:N annotation.  What should be the cascade and fetch types?
 	// TODO SC08 - Add other missing annotations.
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
-    @JoinTable(
-        name = "club_membership",
-        joinColumns = @JoinColumn(name = "club_id"),
-        inverseJoinColumns = @JoinColumn(name = "student_id")
-    )
+	@ManyToMany(mappedBy = "studentClubs")
     @JsonIgnore
 	protected Set<Student> studentMembers = new HashSet<Student>();
 	
 	// TODO SC09 - Add the missing annotations.
     @Transient
 	protected boolean editable = false;
+    
 
 	public StudentClub() {
 		super();
@@ -109,7 +105,7 @@ public class StudentClub extends PojoBase implements Serializable {
         this();
         this.isAcademic = isAcademic;
     }
-
+    
 	public String getName() {
 		return name;
 	}

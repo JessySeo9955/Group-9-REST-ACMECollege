@@ -47,7 +47,7 @@ public class StudentClubResource {
     }
     
     @GET 
-    @RolesAllowed({ADMIN_ROLE}) 
+    // @RolesAllowed({ADMIN_ROLE}) 
     @Path(STUDENT_CLUB_MEMBERSHIP_PATH)
     public Response getStudentClubsByStudent(
             @PathParam(STUDENT_ID_ELEMENT) int studentId) {
@@ -57,7 +57,7 @@ public class StudentClubResource {
     }
 
     @GET
-    @RolesAllowed({ADMIN_ROLE})
+    //@RolesAllowed({ADMIN_ROLE})
     @Path(STUDENT_UNREGISTERED_CLUB_MEMBERSHIP_PATH)
     public Response getUnregisteredStudentClubsByStudent(
             @PathParam(STUDENT_ID_ELEMENT) int studentId) {
@@ -68,27 +68,36 @@ public class StudentClubResource {
         return Response.ok(clubs).build();
     }
     
-    @POST @RolesAllowed({ADMIN_ROLE})
+    @POST
+    @RolesAllowed({ADMIN_ROLE})
     public Response addStudentClub(StudentClub club) {
         return Response.status(Status.CREATED).entity(service.persistStudentClub(club)).build();
     }
 
-    @PUT @RolesAllowed({ADMIN_ROLE}) @Path(RESOURCE_PATH_ID_PATH)
+    @PUT 
+    @RolesAllowed({ADMIN_ROLE}) 
+    @Path(RESOURCE_PATH_ID_PATH)
     public Response updateStudentClub(@PathParam(RESOURCE_PATH_ID_ELEMENT) int id, StudentClub updates) {
         StudentClub club = service.updateStudentClubById(id, updates);
         return Response.status(club == null ? Status.NOT_FOUND : Status.OK).entity(club).build();
     }
 
     
-    @DELETE @RolesAllowed({ADMIN_ROLE}) @Path(RESOURCE_PATH_ID_PATH)
+    @DELETE 
+    @RolesAllowed({ADMIN_ROLE})
+    @Path(RESOURCE_PATH_ID_PATH)
     public Response deleteStudentClub(@PathParam(RESOURCE_PATH_ID_ELEMENT) int id) {
         StudentClub club = service.deleteStudentClubById(id);
         return Response.status(club == null ? Status.NOT_FOUND : Status.OK).entity(club).build();
     }
 
-    @POST @RolesAllowed({ADMIN_ROLE}) @Path(CLUB_MEMBERSHIP_PATH)
-    public Response addClubMembership(@PathParam(CLUB_ID_ELEMENT) int clubId, @PathParam(STUDENT_ID_ELEMENT) int studentId) {
-        StudentClub club = service.addStudentToClub(clubId, studentId);
+    @POST 
+    @RolesAllowed({ADMIN_ROLE}) 
+    @Path(CLUB_MEMBERSHIP_PATH)
+    public Response addClubMembership(
+    		@PathParam(CLUB_ID_ELEMENT) int clubId, 
+    		@PathParam(STUDENT_ID_ELEMENT) int studentId) {
+    	StudentClub club = service.addStudentToClub(clubId, studentId);
         return Response.status(club == null ? Status.NOT_FOUND : Status.OK).entity(club).build();
     }
     

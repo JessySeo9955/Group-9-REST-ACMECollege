@@ -53,12 +53,33 @@ import jakarta.persistence.Version;
 @NamedQuery(name = Student.QUERY_STUDENT_BY_ID, query = "SELECT s FROM Student s LEFT JOIN FETCH s.courseRegistrations LEFT JOIN FETCH s.studentClubs WHERE s.id = :param1")
 //Hint - No need for AttributeOverride as student id column is called id as well.
 //Hint - @AttributeOverride can override column details from the mapped super class.
+@NamedQuery(
+	    name = Student.STUDENT_CLUBS_QUERY,
+	    query = "SELECT DISTINCT sc " +
+	            "FROM Student s " +
+	            "JOIN s.studentClubs sc " +
+	            "WHERE s.id = :param1"
+	)
+@NamedQuery(
+	    name = Student.UNREGISTERED_STUDENT_CLUBS_QUERY,
+	    query = "SELECT sc " +
+	            "FROM StudentClub sc " +
+	            "WHERE sc NOT IN (" +
+	            "   SELECT club " +
+	            "   FROM Student s " +
+	            "   JOIN s.studentClubs club " +
+	            "   WHERE s.id = :param1" +
+	            ")"
+	)
+
 public class Student extends PojoBase implements Serializable {
 	/** explicit set serialVersionUID */
 	private static final long serialVersionUID = 1L;
 
 	public static final String ALL_STUDENTS_QUERY_NAME = "Student.findAll";
     public static final String QUERY_STUDENT_BY_ID = "Student.findAllByID";
+    public static final String STUDENT_CLUBS_QUERY = "Student.findStudentClubs";
+    public static final String UNREGISTERED_STUDENT_CLUBS_QUERY = "Student.findUnregisteredStudentClubs";
 
 	// JPA requires the default constructor be present
     public Student() {

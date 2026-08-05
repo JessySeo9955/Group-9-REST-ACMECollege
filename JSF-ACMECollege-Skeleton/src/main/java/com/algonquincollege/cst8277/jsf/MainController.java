@@ -92,6 +92,7 @@ public class MainController implements Serializable, MyConstants {
                 collegeController.loadLetterGrades();
                 break;
             case CLUB_MEMBERSHIP_REGISTRATION:
+            	collegeController.setSelectedStudentId(-1);
             	collegeController.loadStudentClubs();
             	studentController.loadStudents();
                 break;

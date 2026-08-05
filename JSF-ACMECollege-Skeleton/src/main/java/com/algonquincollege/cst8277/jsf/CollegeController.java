@@ -69,7 +69,9 @@ public class CollegeController implements Serializable, MyConstants {
 
     public void loadCourses() { courses = target().path(COURSE_RESOURCE_NAME).request().get(new GenericType<List<Course>>(){}); }
     public void loadProfessors() { professors = target().path(PROFESSOR_RESOURCE_NAME).request().get(new GenericType<List<Professor>>(){}); }
-    public void loadStudentClubs() { studentClubs = target().path(STUDENT_CLUB_RESOURCE_NAME).request().get(new GenericType<List<StudentClub>>(){}); }
+    public void loadStudentClubs() { 
+    	studentClubs = target().path(STUDENT_CLUB_RESOURCE_NAME).request().get(new GenericType<List<StudentClub>>(){});
+    }
     public void loadCourseRegistrations() { courseRegistrations = target().path(COURSE_REGISTRATION_RESOURCE_NAME).request().get(new GenericType<List<CourseRegistration>>(){}); }
     public void loadDegrees() { degrees = target().path(PROFESSOR_RESOURCE_NAME + DEGREE_RESOURCE_PATH).request().get(new GenericType<List<String>>(){}); }
     public void loadSemesters() { semesters = target().path(COURSE_REGISTRATION_RESOURCE_NAME + SEMESTER_RESOURCE_PATH).request().get(new GenericType<List<String>>(){}); }
@@ -91,7 +93,8 @@ public class CollegeController implements Serializable, MyConstants {
     public void deleteCourseRegistration(CourseRegistration registration) { target().path(COURSE_REGISTRATION_RESOURCE_NAME + "/student/" + registration.getStudentId() + "/course/" + registration.getCourseId()).request().delete(); loadCourseRegistrations(); }
     public void assignProfessor() { target().path(COURSE_REGISTRATION_RESOURCE_NAME + "/student/" + selectedStudentId + "/course/" + selectedCourseId + "/professor/" + selectedProfessorId).request().put(Entity.json("")); loadCourseRegistrations(); }
     public void assignGrade() { target().path(COURSE_REGISTRATION_RESOURCE_NAME + "/student/" + selectedStudentId + "/course/" + selectedCourseId + "/grade/" + selectedGrade).request().put(Entity.json("")); loadCourseRegistrations(); }
-    public void addClubMembership() { target().path(STUDENT_CLUB_RESOURCE_NAME + "/" + selectedClubId + "/student/" + selectedStudentId).request().post(Entity.json("")); loadStudentClubs(); }
+    public void addClubMembership() { 
+    	target().path(STUDENT_CLUB_RESOURCE_NAME + "/" + selectedClubId + "/student/" + selectedStudentId).request().post(Entity.json("")); loadStudentClubs(); }
 
     public List<Course> getCourses() { if (courses == null) loadCourses(); return courses; }
     public List<Professor> getProfessors() { if (professors == null) loadProfessors(); return professors; }
@@ -133,13 +136,18 @@ public class CollegeController implements Serializable, MyConstants {
        loadStudentMemberships();
     }
     
-   public void addStudentToClub(int clubId) {
-	   target()
-       .path(STUDENT_CLUB_RESOURCE_NAME + "/" + clubId + "/student/" + selectedStudentId)
-       .request()
-       .post(Entity.text(""));
+    public void addStudentToClub(int clubId) {
+        Response response = target()
+                .path(STUDENT_CLUB_RESOURCE_NAME + "/" + clubId + "/student/" + selectedStudentId)
+                .request()
+                .post(Entity.json("{}"));
 
-   loadStudentMemberships();
-    	
+        if (response.hasEntity()) {
+            System.out.println("Response Body: " + response.readEntity(String.class));
+        }
+
+        response.close();
+
+        loadStudentMemberships();
     }
 }
