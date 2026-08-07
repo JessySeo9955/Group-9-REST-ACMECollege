@@ -25,6 +25,7 @@ import jakarta.persistence.MapsId;
 import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 /**
  * The persistent class for the course_registration database table.
@@ -77,6 +78,15 @@ public class CourseRegistration extends PojoBaseCompositeKey<CourseRegistrationP
 
     @Column(name = "letter_grade", length = 3)
     protected String letterGrade;
+
+    /*
+     * The 'professor' association is @JsonIgnore'd, so it is only ever sent over the wire as a flat
+     * "professorId". A client deserializing a response had nowhere to put that value, which made
+     * getProfessorId() always answer null on the client side. This transient field is that landing
+     * spot; the server still answers from the association whenever one is loaded.
+     */
+    @Transient
+    protected Integer professorId;
 
     public CourseRegistration() {
         id = new CourseRegistrationPK();
@@ -158,6 +168,15 @@ public class CourseRegistration extends PojoBaseCompositeKey<CourseRegistrationP
 
     @JsonProperty("professorId")
     public Integer getProfessorId() {
-        return professor == null ? null : professor.getId();
+        // Deliberately not a ternary: mixing Integer and int makes the conditional operator unbox
+        // both branches, which throws NPE when neither is set.
+        if (professor != null) {
+            return professor.getId();
+        }
+        return professorId;
+    }
+
+    public void setProfessorId(Integer professorId) {
+        this.professorId = professorId;
     }
 }

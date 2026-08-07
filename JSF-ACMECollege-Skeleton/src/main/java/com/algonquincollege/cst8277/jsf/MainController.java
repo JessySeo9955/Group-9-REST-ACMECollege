@@ -81,16 +81,13 @@ public class MainController implements Serializable, MyConstants {
             case STUDENT_CLUB_MANAGEMENT:
                 collegeController.loadStudentClubs();
                 break;
+            // All three course-registration screens pick students/courses/professors/semesters/
+            // grades from drop-downs - both in the entry form and in the editable table - so every
+            // one of those lists has to be loaded alongside the registrations.
             case COURSE_REGISTRATION:
-                collegeController.loadCourseRegistrations();
-                collegeController.loadSemesters();
-                break;
             case ASSIGN_PROFESSOR:
-                collegeController.loadCourseRegistrations();
-                break;
             case ASSIGN_GRADE:
-                collegeController.loadCourseRegistrations();
-                collegeController.loadLetterGrades();
+                loadCourseRegistrationLookups();
                 break;
             case CLUB_MEMBERSHIP_REGISTRATION:
             	collegeController.setRegisteredClubs(new ArrayList<>());
@@ -102,5 +99,14 @@ public class MainController implements Serializable, MyConstants {
             default:
                 break;
         }
+    }
+
+    private void loadCourseRegistrationLookups() {
+        studentController.loadStudents();
+        collegeController.loadCourses();
+        collegeController.loadProfessors();
+        collegeController.loadSemesters();
+        collegeController.loadLetterGrades();
+        collegeController.loadCourseRegistrations();
     }
 }
