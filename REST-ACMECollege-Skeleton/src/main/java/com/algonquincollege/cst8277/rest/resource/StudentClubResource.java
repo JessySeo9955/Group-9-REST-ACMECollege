@@ -37,17 +37,20 @@ import jakarta.ws.rs.core.Response.Status;
 public class StudentClubResource {
     @EJB protected ACMECollegeService service;
 
-    @GET @PermitAll
+    @GET 
+    @PermitAll
     public Response getStudentClubs() { return Response.ok(service.getAllStudentClubs()).build(); }
 
-    @GET @PermitAll @Path(RESOURCE_PATH_ID_PATH)
+    @GET 
+    @PermitAll 
+    @Path(RESOURCE_PATH_ID_PATH)
     public Response getStudentClubById(@PathParam(RESOURCE_PATH_ID_ELEMENT) int id) {
         StudentClub club = service.getStudentClubById(id);
         return Response.status(club == null ? Status.NOT_FOUND : Status.OK).entity(club).build();
     }
     
     @GET 
-    // @RolesAllowed({ADMIN_ROLE}) 
+    @RolesAllowed({ADMIN_ROLE}) 
     @Path(STUDENT_CLUB_MEMBERSHIP_PATH)
     public Response getStudentClubsByStudent(
             @PathParam(STUDENT_ID_ELEMENT) int studentId) {
@@ -57,7 +60,7 @@ public class StudentClubResource {
     }
 
     @GET
-    //@RolesAllowed({ADMIN_ROLE})
+    @RolesAllowed({ADMIN_ROLE})
     @Path(STUDENT_UNREGISTERED_CLUB_MEMBERSHIP_PATH)
     public Response getUnregisteredStudentClubsByStudent(
             @PathParam(STUDENT_ID_ELEMENT) int studentId) {
