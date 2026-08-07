@@ -50,6 +50,11 @@
           <h:commandButton styleClass="btn btn-primary mt-2" value="#{uiconsts['submitLabel']}" action="#{mainController.submitForm()}" />
         </h:form>
 
+        <!-- Without this, a rejected REST call (or a conversion error) produced no visible feedback
+             at all, so the Register / Assign buttons simply looked dead. -->
+        <h:messages styleClass="alert alert-warning" infoClass="alert alert-success" errorClass="alert alert-danger"
+          showDetail="true" showSummary="true" />
+
         <h:panelGroup rendered="#{mainController.optionChosen == 'Student Management'}">
           <h2 class="section-title">Student Management</h2>
           <h:form id="studentAdd" styleClass="form-row">
@@ -129,8 +134,14 @@
         <h:panelGroup rendered="#{mainController.optionChosen == 'Course Registration'}">
           <h2 class="section-title">Course Registration</h2>
           <h:form id="registrationAdd" styleClass="form-row">
-            <h:inputText styleClass="form-control col" value="#{collegeController.selectedStudentId}" a:placeholder="Student Id" />
-            <h:inputText styleClass="form-control col" value="#{collegeController.selectedCourseId}" a:placeholder="Course Id" />
+            <h:selectOneMenu styleClass="form-control col" value="#{collegeController.regStudentId}">
+              <f:selectItems value="#{studentController.students}" var="student"
+                itemValue="#{student.id}" itemLabel="#{student.id} - #{student.firstName} #{student.lastName}" />
+            </h:selectOneMenu>
+            <h:selectOneMenu styleClass="form-control col" value="#{collegeController.regCourseId}">
+              <f:selectItems value="#{collegeController.courses}" var="course"
+                itemValue="#{course.id}" itemLabel="#{course.id} - #{course.courseCode} #{course.courseTitle}" />
+            </h:selectOneMenu>
             <h:inputText styleClass="form-control col" value="#{collegeController.newRegistration.year}" a:placeholder="Year" />
             <h:selectOneMenu styleClass="form-control col" value="#{collegeController.newRegistration.semester}"><f:selectItems value="#{collegeController.semesters}" /></h:selectOneMenu>
             <h:commandButton styleClass="btn btn-success" value="Register" action="#{collegeController.addCourseRegistration()}" />
@@ -138,32 +149,104 @@
           <h:form id="registrationList"><h:dataTable value="#{collegeController.courseRegistrations}" var="reg" styleClass="table table-striped table-bordered table-hover">
             <h:column><f:facet name="header">Student</f:facet>#{reg.studentId}</h:column>
             <h:column><f:facet name="header">Course</f:facet>#{reg.courseId}</h:column>
-            <h:column><f:facet name="header">Professor</f:facet>#{reg.professorId}</h:column>
-            <h:column><f:facet name="header">Year</f:facet>#{reg.year}</h:column>
-            <h:column><f:facet name="header">Semester</f:facet>#{reg.semester}</h:column>
-            <h:column><f:facet name="header">Grade</f:facet>#{reg.letterGrade}</h:column>
-            <h:column><f:facet name="header">Action</f:facet><h:commandButton styleClass="btn btn-sm btn-danger" value="Delete" action="#{collegeController.deleteCourseRegistration(reg)}" /></h:column>
+            <h:column><f:facet name="header">Professor</f:facet>
+              <h:selectOneMenu value="#{reg.professorId}">
+                <f:selectItem itemLabel="-- none --" itemValue="#{null}" noSelectionOption="true" />
+                <f:selectItems value="#{collegeController.professors}" var="professor"
+                  itemValue="#{professor.id}" itemLabel="#{professor.id} - #{professor.firstName} #{professor.lastName}" />
+              </h:selectOneMenu>
+            </h:column>
+            <h:column><f:facet name="header">Year</f:facet><h:inputText value="#{reg.year}" /></h:column>
+            <h:column><f:facet name="header">Semester</f:facet>
+              <h:selectOneMenu value="#{reg.semester}"><f:selectItems value="#{collegeController.semesters}" /></h:selectOneMenu>
+            </h:column>
+            <h:column><f:facet name="header">Grade</f:facet>
+              <h:selectOneMenu value="#{reg.letterGrade}">
+                <f:selectItem itemLabel="-- none --" itemValue="#{null}" noSelectionOption="true" />
+                <f:selectItems value="#{collegeController.letterGrades}" />
+              </h:selectOneMenu>
+            </h:column>
+            <h:column><f:facet name="header">Action</f:facet><h:commandButton styleClass="btn btn-sm btn-success" value="Save" action="#{collegeController.updateCourseRegistration(reg)}" /> <h:commandButton styleClass="btn btn-sm btn-danger" value="Delete" action="#{collegeController.deleteCourseRegistration(reg)}" /></h:column>
           </h:dataTable></h:form>
         </h:panelGroup>
 
         <h:panelGroup rendered="#{mainController.optionChosen == 'Assign Professor'}">
           <h2 class="section-title">Assign Professor</h2>
           <h:form id="assignProfessor" styleClass="form-row">
-            <h:inputText styleClass="form-control col" value="#{collegeController.selectedStudentId}" a:placeholder="Student Id" />
-            <h:inputText styleClass="form-control col" value="#{collegeController.selectedCourseId}" a:placeholder="Course Id" />
-            <h:inputText styleClass="form-control col" value="#{collegeController.selectedProfessorId}" a:placeholder="Professor Id" />
+            <h:selectOneMenu styleClass="form-control col" value="#{collegeController.regStudentId}">
+              <f:selectItems value="#{studentController.students}" var="student"
+                itemValue="#{student.id}" itemLabel="#{student.id} - #{student.firstName} #{student.lastName}" />
+            </h:selectOneMenu>
+            <h:selectOneMenu styleClass="form-control col" value="#{collegeController.regCourseId}">
+              <f:selectItems value="#{collegeController.courses}" var="course"
+                itemValue="#{course.id}" itemLabel="#{course.id} - #{course.courseCode} #{course.courseTitle}" />
+            </h:selectOneMenu>
+            <h:selectOneMenu styleClass="form-control col" value="#{collegeController.regProfessorId}">
+              <f:selectItems value="#{collegeController.professors}" var="professor"
+                itemValue="#{professor.id}" itemLabel="#{professor.id} - #{professor.firstName} #{professor.lastName}" />
+            </h:selectOneMenu>
             <h:commandButton styleClass="btn btn-success" value="Assign" action="#{collegeController.assignProfessor()}" />
           </h:form>
+          <h:form id="assignProfessorList"><h:dataTable value="#{collegeController.courseRegistrations}" var="reg" styleClass="table table-striped table-bordered table-hover">
+            <h:column><f:facet name="header">Student</f:facet>#{reg.studentId}</h:column>
+            <h:column><f:facet name="header">Course</f:facet>#{reg.courseId}</h:column>
+            <h:column><f:facet name="header">Professor</f:facet>
+              <h:selectOneMenu value="#{reg.professorId}">
+                <f:selectItem itemLabel="-- none --" itemValue="#{null}" noSelectionOption="true" />
+                <f:selectItems value="#{collegeController.professors}" var="professor"
+                  itemValue="#{professor.id}" itemLabel="#{professor.id} - #{professor.firstName} #{professor.lastName}" />
+              </h:selectOneMenu>
+            </h:column>
+            <h:column><f:facet name="header">Year</f:facet><h:inputText value="#{reg.year}" /></h:column>
+            <h:column><f:facet name="header">Semester</f:facet>
+              <h:selectOneMenu value="#{reg.semester}"><f:selectItems value="#{collegeController.semesters}" /></h:selectOneMenu>
+            </h:column>
+            <h:column><f:facet name="header">Grade</f:facet>
+              <h:selectOneMenu value="#{reg.letterGrade}">
+                <f:selectItem itemLabel="-- none --" itemValue="#{null}" noSelectionOption="true" />
+                <f:selectItems value="#{collegeController.letterGrades}" />
+              </h:selectOneMenu>
+            </h:column>
+            <h:column><f:facet name="header">Action</f:facet><h:commandButton styleClass="btn btn-sm btn-success" value="Save" action="#{collegeController.updateCourseRegistration(reg)}" /> <h:commandButton styleClass="btn btn-sm btn-danger" value="Delete" action="#{collegeController.deleteCourseRegistration(reg)}" /></h:column>
+          </h:dataTable></h:form>
         </h:panelGroup>
 
         <h:panelGroup rendered="#{mainController.optionChosen == 'Assign Grade'}">
           <h2 class="section-title">Assign Grade</h2>
           <h:form id="assignGrade" styleClass="form-row">
-            <h:inputText styleClass="form-control col" value="#{collegeController.selectedStudentId}" a:placeholder="Student Id" />
-            <h:inputText styleClass="form-control col" value="#{collegeController.selectedCourseId}" a:placeholder="Course Id" />
+            <h:selectOneMenu styleClass="form-control col" value="#{collegeController.regStudentId}">
+              <f:selectItems value="#{studentController.students}" var="student"
+                itemValue="#{student.id}" itemLabel="#{student.id} - #{student.firstName} #{student.lastName}" />
+            </h:selectOneMenu>
+            <h:selectOneMenu styleClass="form-control col" value="#{collegeController.regCourseId}">
+              <f:selectItems value="#{collegeController.courses}" var="course"
+                itemValue="#{course.id}" itemLabel="#{course.id} - #{course.courseCode} #{course.courseTitle}" />
+            </h:selectOneMenu>
             <h:selectOneMenu styleClass="form-control col" value="#{collegeController.selectedGrade}"><f:selectItems value="#{collegeController.letterGrades}" /></h:selectOneMenu>
             <h:commandButton styleClass="btn btn-success" value="Assign" action="#{collegeController.assignGrade()}" />
           </h:form>
+          <h:form id="assignGradeList"><h:dataTable value="#{collegeController.courseRegistrations}" var="reg" styleClass="table table-striped table-bordered table-hover">
+            <h:column><f:facet name="header">Student</f:facet>#{reg.studentId}</h:column>
+            <h:column><f:facet name="header">Course</f:facet>#{reg.courseId}</h:column>
+            <h:column><f:facet name="header">Professor</f:facet>
+              <h:selectOneMenu value="#{reg.professorId}">
+                <f:selectItem itemLabel="-- none --" itemValue="#{null}" noSelectionOption="true" />
+                <f:selectItems value="#{collegeController.professors}" var="professor"
+                  itemValue="#{professor.id}" itemLabel="#{professor.id} - #{professor.firstName} #{professor.lastName}" />
+              </h:selectOneMenu>
+            </h:column>
+            <h:column><f:facet name="header">Year</f:facet><h:inputText value="#{reg.year}" /></h:column>
+            <h:column><f:facet name="header">Semester</f:facet>
+              <h:selectOneMenu value="#{reg.semester}"><f:selectItems value="#{collegeController.semesters}" /></h:selectOneMenu>
+            </h:column>
+            <h:column><f:facet name="header">Grade</f:facet>
+              <h:selectOneMenu value="#{reg.letterGrade}">
+                <f:selectItem itemLabel="-- none --" itemValue="#{null}" noSelectionOption="true" />
+                <f:selectItems value="#{collegeController.letterGrades}" />
+              </h:selectOneMenu>
+            </h:column>
+            <h:column><f:facet name="header">Action</f:facet><h:commandButton styleClass="btn btn-sm btn-success" value="Save" action="#{collegeController.updateCourseRegistration(reg)}" /> <h:commandButton styleClass="btn btn-sm btn-danger" value="Delete" action="#{collegeController.deleteCourseRegistration(reg)}" /></h:column>
+          </h:dataTable></h:form>
         </h:panelGroup>
 
         <h:panelGroup rendered="#{mainController.optionChosen == 'Club Membership Registration'}">

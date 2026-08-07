@@ -105,13 +105,20 @@ public class TestACMECollegeSystem {
 
     @Test
     public void test02_admin_create_course_registration() {
+        WebTarget target = webTarget.register(adminAuth);
+        String path = COURSE_REGISTRATION_RESOURCE_NAME + "/student/" + STUDENT_ID + "/course/" + COURSE_ID;
+
+        // persistCourseRegistration refuses a duplicate (400), so a row left behind by an
+        // interrupted run would fail this test. Clear it first to keep the suite repeatable
+        // without re-seeding the database.
+        target.path(path).request().delete().close();
+
         CourseRegistration registration = new CourseRegistration();
         registration.setYear(2026);
         registration.setSemester("FALL");
 
-        Response response = webTarget
-            .register(adminAuth)
-            .path(COURSE_REGISTRATION_RESOURCE_NAME + "/student/" + STUDENT_ID + "/course/" + COURSE_ID)
+        Response response = target
+            .path(path)
             .request()
             .post(Entity.json(registration));
 

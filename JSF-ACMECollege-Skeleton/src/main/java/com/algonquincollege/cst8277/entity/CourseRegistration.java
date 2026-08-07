@@ -25,6 +25,7 @@ import jakarta.persistence.MapsId;
 import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 /**
  * The persistent class for the course_registration database table.
@@ -77,6 +78,17 @@ public class CourseRegistration extends PojoBaseCompositeKey<CourseRegistrationP
 
     @Column(name = "letter_grade", length = 3)
     protected String letterGrade;
+
+    /*
+     * The REST layer sends the professor as a plain "professorId" (the 'professor' association
+     * itself is @JsonIgnore'd), so the client needs somewhere to put it. Without this the
+     * Professor column always rendered blank and could not be edited.
+     */
+    @Transient
+    protected Integer professorId;
+
+    @Transient
+    protected boolean editable;
 
     public CourseRegistration() {
         id = new CourseRegistrationPK();
@@ -158,6 +170,24 @@ public class CourseRegistration extends PojoBaseCompositeKey<CourseRegistrationP
 
     @JsonProperty("professorId")
     public Integer getProfessorId() {
-        return professor == null ? null : professor.getId();
+        // Deliberately not a ternary: mixing Integer and int makes the conditional operator unbox
+        // both branches, which throws NPE when the id has not been set.
+        if (professor != null) {
+            return professor.getId();
+        }
+        return professorId;
+    }
+
+    public void setProfessorId(Integer professorId) {
+        this.professorId = professorId;
+    }
+
+    @JsonIgnore
+    public boolean isEditable() {
+        return editable;
+    }
+
+    public void setEditable(boolean editable) {
+        this.editable = editable;
     }
 }
