@@ -10,6 +10,8 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.hibernate.annotations.DiscriminatorFormula;
+
 import jakarta.persistence.Access;
 import jakarta.persistence.AccessType;
 import jakarta.persistence.AttributeOverride;
@@ -55,10 +57,9 @@ import com.algonquincollege.cst8277.entity.NonAcademic;
     query = "SELECT DISTINCT sc FROM StudentClub sc LEFT JOIN FETCH sc.studentMembers"
 )
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(
-    name = "academic",
-    discriminatorType = DiscriminatorType.INTEGER
-)
+@DiscriminatorFormula(
+		 "CASE WHEN academic = 1 THEN 1 ELSE 0 END"
+	)
 @AttributeOverride(name = "id", column = @Column(name = "club_id"))
 public class StudentClub extends PojoBase implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -76,24 +77,25 @@ public class StudentClub extends PojoBase implements Serializable {
 	protected String desc;
 
 	// TODO SC06 - Add the missing annotations.
+    // The 'academic' column is already mapped by @DiscriminatorColumn above.
+    // Mapping it again read-write makes Hibernate fail at boot with
+    // "Repeated column in mapping", so this field is read-only: the value is
+    // written by the discriminator and only read back into the field.
     @Basic(optional = false)
-    @Column(name = "academic", nullable = false)
-	protected boolean isAcademic;
+    @Column(
+	    name = "academic", nullable = false)
+    protected boolean isAcademic;
 
 	// TODO SC07 - Add the M:N annotation.  What should be the cascade and fetch types?
 	// TODO SC08 - Add other missing annotations.
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
-    @JoinTable(
-        name = "club_membership",
-        joinColumns = @JoinColumn(name = "club_id"),
-        inverseJoinColumns = @JoinColumn(name = "student_id")
-    )
+	@ManyToMany(mappedBy = "studentClubs")
     @JsonIgnore
 	protected Set<Student> studentMembers = new HashSet<Student>();
 	
 	// TODO SC09 - Add the missing annotations.
     @Transient
 	protected boolean editable = false;
+    
 
 	public StudentClub() {
 		super();
@@ -103,7 +105,7 @@ public class StudentClub extends PojoBase implements Serializable {
         this();
         this.isAcademic = isAcademic;
     }
-
+    
 	public String getName() {
 		return name;
 	}

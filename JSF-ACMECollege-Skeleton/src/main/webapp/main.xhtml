@@ -168,11 +168,45 @@
 
         <h:panelGroup rendered="#{mainController.optionChosen == 'Club Membership Registration'}">
           <h2 class="section-title">Club Membership Registration</h2>
-          <h:form id="clubMembership" styleClass="form-row">
-            <h:inputText styleClass="form-control col" value="#{collegeController.selectedClubId}" a:placeholder="Club Id" />
-            <h:inputText styleClass="form-control col" value="#{collegeController.selectedStudentId}" a:placeholder="Student Id" />
-            <h:commandButton styleClass="btn btn-success" value="Register" action="#{collegeController.addClubMembership()}" />
+          <h:form id="clubMembership" styleClass="mb-3">
+	          <h:selectOneMenu styleClass="form-control col" value="#{collegeController.selectedStudentId}">
+	           <f:selectItem
+			        itemLabel="-- Select Student --"
+			        itemValue="-1"
+			        noSelectionOption="true"/>
+	          <f:selectItems value="#{studentController.students}"
+	                       var="student"
+	                       itemValue="#{student.id}"
+	                       itemLabel="#{student.firstName} #{student.lastName}" />
+	          </h:selectOneMenu>
+	          <h:commandButton styleClass="btn btn-primary mt-2"  value="Submit" action="#{collegeController.loadStudentMemberships()}" />
           </h:form>
+         
+          
+           <h:form id="RegisteredClubList">
+           <h2 class="section-title">Registered Clubs</h2>
+            <h:dataTable value="#{collegeController.registeredClubs}" var="club" styleClass="table table-striped table-bordered table-hover">
+	            <h:column><f:facet name="header">Id</f:facet>#{club.id}</h:column>
+	            <h:column><f:facet name="header">Name</f:facet><h:outputText value="#{club.name}" /></h:column>
+	            <h:column><f:facet name="header">Description</f:facet><h:outputText value="#{club.desc}" /></h:column>
+	            <h:column><f:facet name="header">Academic</f:facet>#{club.academic}</h:column>
+              <h:column><f:facet name="header">Action</f:facet><h:commandButton styleClass="btn btn-sm btn-danger" value="Withdraw" action="#{collegeController.deleteStudentFromClub(club.id)}" /></h:column>
+            </h:dataTable>
+          </h:form>
+          
+           <h:form id="UnRegisteredClubList">
+           <h2 class="section-title">UnRegistered Clubs</h2>
+            <h:dataTable value="#{collegeController.unRegisteredClubs}" var="club" styleClass="table table-striped table-bordered table-hover">
+	           	<h:column><f:facet name="header">Id</f:facet>#{club.id}</h:column>
+	            <h:column><f:facet name="header">Name</f:facet><h:outputText value="#{club.name}" /></h:column>
+	            <h:column><f:facet name="header">Description</f:facet><h:outputText value="#{club.desc}" /></h:column>
+	            <h:column><f:facet name="header">Academic</f:facet>#{club.academic}</h:column>
+              <h:column><f:facet name="header">Action</f:facet><h:commandButton styleClass="btn btn-sm btn-success" value="Register" action="#{collegeController.addStudentToClub(club.id)}" /></h:column>
+            </h:dataTable>
+          </h:form>
+          
+          
+
         </h:panelGroup>
       </h:panelGroup>
 

@@ -26,6 +26,7 @@ import static com.algonquincollege.cst8277.utility.MyConstants.USER_ROLE;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -64,6 +65,7 @@ public class ACMECollegeService implements Serializable {
     private static final String READ_ALL_PROGRAMS = "SELECT name FROM program";
     private static final String READ_ALL_SEMESTERS = "SELECT name FROM semester";
     private static final String READ_ALL_LETTER_GRADES = "SELECT grade FROM letter_grade";
+    private static final String READ_ALL_DEGREES = "SELECT name FROM degree";
 
     @PersistenceContext(name = PU_NAME)
     protected EntityManager em;
@@ -153,6 +155,18 @@ public class ACMECollegeService implements Serializable {
         return programs;
     }
 
+    @SuppressWarnings("unchecked")
+    public List<String> getAllDegrees() {
+        List<String> degrees = new ArrayList<>();
+        try {
+            degrees = em.createNativeQuery(READ_ALL_DEGREES).getResultList();
+        }
+        catch (Exception e) {
+            LOG.debug("could not load degrees", e);
+        }
+        return degrees;
+    }
+
     public List<Professor> getAllProfessors() {
         return em.createNamedQuery(Professor.ALL_PROFESSORS_QUERY, Professor.class).getResultList();
     }
@@ -231,6 +245,7 @@ public class ACMECollegeService implements Serializable {
     public StudentClub getStudentClubById(int id) {
         return em.find(StudentClub.class, id);
     }
+    
 
     @Transactional
     public StudentClub persistStudentClub(StudentClub club) {
@@ -253,24 +268,41 @@ public class ACMECollegeService implements Serializable {
     }
 
     @Transactional
-    public StudentClub deleteStudentClubById(int id) {
-        StudentClub club = getStudentClubById(id);
-        if (club != null) {
-            em.remove(club);
+    public StudentClub deleteStudentClubById(int clubId) {
+
+        StudentClub club = getStudentClubById(clubId);
+
+        if (club == null) {
+            return null;
         }
+
+        // Remove the relationship from every student
+        for (Student student : new HashSet<>(club.getStudentMembers())) {
+            student.getStudentClubs().remove(club);
+            club.getStudentMembers().remove(student);
+            em.merge(student);
+        }
+
+        em.flush();
+
+        em.remove(em.contains(club) ? club : em.merge(club));
+
         return club;
     }
 
     @Transactional
     public StudentClub addStudentToClub(int clubId, int studentId) {
+    	
         StudentClub club = getStudentClubById(clubId);
         Student student = getStudentById(studentId);
+        
         if (club == null || student == null) {
             return null;
         }
-        club.getStudentMembers().add(student);
-        em.merge(club);
-        em.flush();
+        student.getStudentClubs().add(club);          // Owning side
+        club.getStudentMembers().add(student); // Keep both sides in sync
+
+        em.merge(student); // Merge the owning side
         return club;
     }
     public Course getCourseById(int id) {
@@ -376,4 +408,44 @@ public class ACMECollegeService implements Serializable {
     public List<String> getAllLetterGrades() {
         return em.createNativeQuery(READ_ALL_LETTER_GRADES).getResultList();
     }
+
+	public List<StudentClub> getStudentClubsByStudent(int studentId) {
+		return em.createNamedQuery(
+	            Student.STUDENT_CLUBS_QUERY,
+	            StudentClub.class)
+	        .setParameter(PARAM1, studentId)
+	        .getResultList();
+	}
+	
+	public List<StudentClub> getUnregisteredStudentClubs(int studentId) {
+
+	    return em.createNamedQuery(
+	            Student.UNREGISTERED_STUDENT_CLUBS_QUERY,
+	            StudentClub.class)
+	        .setParameter(PARAM1, studentId)
+	        .getResultList();
+	}
+
+	@Transactional
+	public StudentClub removeStudentFromClub(int clubId, int studentId) {
+
+	    StudentClub club = getStudentClubById(clubId);
+	    Student student = getStudentById(studentId);
+
+	    if (club == null || student == null) {
+	        return null;
+	    }
+
+	 // Remove from the owning side
+	    student.getStudentClubs().remove(club);
+
+	    // Keep the inverse side in sync
+	    club.getStudentMembers().remove(student);
+
+	    em.merge(club);
+	    em.flush();
+
+	    return club;
+	}
+	
 }

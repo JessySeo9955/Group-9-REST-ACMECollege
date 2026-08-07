@@ -41,6 +41,8 @@ public interface MyConstants {
     public static final String PROFESSOR_ID_PATH = "/professor/{" + PROFESSOR_ID_ELEMENT + "}";
     public static final String GRADE_PATH = "/grade/{" + GRADE_ELEMENT + "}";
     public static final String CLUB_MEMBERSHIP_PATH = "/{" + CLUB_ID_ELEMENT + "}/student/{" + STUDENT_ID_ELEMENT + "}";
+    public static final String STUDENT_CLUB_MEMBERSHIP_PATH ="/student/{" + STUDENT_ID_ELEMENT + "}";
+    public static final String STUDENT_UNREGISTERED_CLUB_MEMBERSHIP_PATH = "/student/{" + STUDENT_ID_ELEMENT + "}/unregistered";
     public static final String COURSE_REGISTRATION_RESOURCE_PATH = STUDENT_ID_PATH + COURSE_ID_PATH;
     public static final String COURSE_REGISTRATION_PROFESSOR_PATH = COURSE_REGISTRATION_RESOURCE_PATH + PROFESSOR_ID_PATH;
     public static final String COURSE_REGISTRATION_GRADE_PATH = COURSE_REGISTRATION_RESOURCE_PATH + GRADE_PATH;
